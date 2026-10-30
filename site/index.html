@@ -356,22 +356,24 @@ tr:last-child td{ border-bottom:0; }
 /* chapter 7: wrap-up */
 .wrap{ position:relative; padding:18px 16px 14px; }
 .wrap-bg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.wrap-map path{ fill:#1f2733; fill-opacity:.55; stroke:#4d94f0; stroke-opacity:.28; stroke-width:1; stroke-linejoin:round; }
 .ledger{ position:relative; display:grid; gap:8px; }
 .lrow{ display:grid; grid-template-columns:minmax(0,1fr) 22px minmax(0,1.1fr); align-items:center; gap:8px; opacity:0; transform:translateX(-14px); transition:opacity .45s ease, transform .45s ease; }
 .lrow.in{ opacity:1; transform:none; }
-.lyou{ background:#2a3240; border-radius:10px 10px 2px 10px; padding:8px 10px; font-size:12.5px; line-height:1.45; }
+.lyou{ background:rgba(42,50,64,.82); border-radius:10px 10px 2px 10px; padding:8px 10px; font-size:12.5px; line-height:1.45; }
 .lyou em{ display:block; font-style:normal; font:500 10.5px 'IBM Plex Mono', monospace; color:var(--text-muted); margin-top:3px; }
 .larrow{ color:var(--amber); font-size:18px; text-align:center; }
-.lgot{ border:1px solid var(--bezel); background:rgba(21,27,35,.92); border-radius:10px; padding:8px 10px; font-size:12.8px; line-height:1.45; }
+.lgot{ border:1px solid var(--bezel); background:rgba(21,27,35,.72); border-radius:10px; padding:8px 10px; font-size:12.8px; line-height:1.45; }
 .lgot b{ font:600 20px 'IBM Plex Mono', monospace; color:var(--amber); margin-right:6px; }
 @media (max-width:560px){ .lrow{ grid-template-columns:minmax(0,1fr); } .larrow{ transform:rotate(90deg); line-height:1; } }
 .wrap-tiles{ position:relative; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-top:16px; }
-.wt{ border:1px solid var(--bezel); border-radius:10px; background:rgba(21,27,35,.92); padding:12px; text-align:center; opacity:0; transform:scale(.92); transition:opacity .4s ease, transform .4s ease; }
+.wt{ border:1px solid var(--bezel); border-radius:10px; background:rgba(21,27,35,.72); padding:12px; text-align:center; opacity:0; transform:scale(.92); transition:opacity .4s ease, transform .4s ease; }
 .wt.in{ opacity:1; transform:none; }
 .wt .v{ font:600 30px 'IBM Plex Mono', monospace; }
 .wt .l{ font-size:12px; color:var(--text-muted); margin-top:2px; }
 .wt.hot{ border-color:var(--amber-dim); box-shadow:0 0 22px rgba(245,166,35,.18); }
 .wt.hot .v{ color:var(--amber); }
+@media (max-width:560px){ .wt{ padding:10px 6px; } .wt .v{ font-size:21px; } .wt .l{ font-size:11px; } }
 .wrap-line{ position:relative; text-align:center; font-size:22px; font-weight:600; margin:18px 0 4px; opacity:0; transition:opacity .8s ease; }
 .wrap-line.in{ opacity:1; }
 .wrap-line span{ color:var(--amber); text-shadow:0 0 18px rgba(245,166,35,.45); }
@@ -438,7 +440,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.9</span>
+    <span class="ver mono">v0.10</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -461,8 +463,8 @@ tr:last-child td{ border-bottom:0; }
           <line x1="48" x2="202" y1="146.5" y2="146.5" stroke="#3a4454"/>
           <rect class="hbar" x="50.0" y="131.0" width="8" height="15.0" rx="1.5" style="animation-delay:0.00s"/><rect class="hbar" x="60.9" y="124.3" width="8" height="21.7" rx="1.5" style="animation-delay:0.06s"/><rect class="hbar" x="71.8" y="114.2" width="8" height="31.8" rx="1.5" style="animation-delay:0.12s"/><rect class="hbar" x="82.7" y="118.4" width="8" height="27.6" rx="1.5" style="animation-delay:0.18s"/><rect class="hbar" x="93.6" y="113.4" width="8" height="32.6" rx="1.5" style="animation-delay:0.24s"/><rect class="hbar" x="104.5" y="115.6" width="8" height="30.4" rx="1.5" style="animation-delay:0.30s"/><rect class="hbar" x="115.4" y="106.0" width="8" height="40.0" rx="1.5" style="animation-delay:0.36s"/><rect class="hbar" x="126.3" y="122.3" width="8" height="23.7" rx="1.5" style="animation-delay:0.42s"/><rect class="hbar" x="137.2" y="116.2" width="8" height="29.8" rx="1.5" style="animation-delay:0.48s"/><rect class="hbar" x="148.1" y="119.4" width="8" height="26.6" rx="1.5" style="animation-delay:0.54s"/><rect class="hbar" x="159.0" y="124.8" width="8" height="21.2" rx="1.5" style="animation-delay:0.60s"/><rect class="hbar" x="169.9" y="119.2" width="8" height="26.8" rx="1.5" style="animation-delay:0.66s"/><rect class="hbar" x="180.8" y="126.7" width="8" height="19.3" rx="1.5" style="animation-delay:0.72s"/><rect class="hbar ytd" x="191.7" y="127.0" width="8" height="19.0" rx="1.5" style="animation-delay:0.78s"/>
           <text x="48" y="157" class="svg-m" font-size="8">2013</text><text x="202" y="157" text-anchor="end" class="svg-m" font-size="8">2026</text>
-          <rect x="82" y="172" width="128" height="30" rx="10" fill="#2a3240"/>
-          <text x="92" y="191" class="svg-t" font-size="11">Plan Oregon in FF</text>
+          <rect x="58" y="172" width="152" height="30" rx="10" fill="#2a3240"/>
+          <text x="68" y="191" class="svg-t" font-size="11">Let's plan an Oregon trip</text>
           <!-- ForeFlight (right) -->
           <rect x="416" y="20" width="200" height="210" rx="16" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
           <rect x="428" y="34" width="176" height="182" rx="6" fill="#11161d"/>
@@ -601,16 +603,17 @@ tr:last-child td{ border-bottom:0; }
 
       <div class="sub" data-label="1 · Find ForeFlight">
         <div class="where cl">In Claude</div>
-        <p class="ways1">In any Claude chat, tap <span class="mono">+</span> → <b>Connectors</b> → <b>Manage connectors</b>. Then find ForeFlight Mobile on the Discover tab.</p>
+        <p class="ways1">In any Claude chat, tap <span class="mono">+</span> → <b>Connectors</b> → <b>Manage connectors</b>. Then ① open the Discover tab, ② search for “ForeFlight”, and ③ select <b>ForeFlight Mobile</b>.</p>
         <div class="stage">
           <figure class="shot">
             <img src="media/claude-connectors.webp" width="1400" height="1094" alt="Claude Settings, Connectors page, with ForeFlight Mobile listed and connected" loading="lazy">
                         <span class="co" style="left:42.2%; top:7.2%; width:8.6%; height:4.2%"></span><span class="cn" style="left:51.6%; top:7.4%">1</span>
-            <span class="co" style="left:21.3%; top:22.9%; width:78%; height:6.1%"></span><span class="cn" style="left:21.4%; top:23%">2</span>
+            <span class="co" style="left:60.5%; top:7.2%; width:25.3%; height:4.2%"></span><span class="cn" style="left:60.6%; top:7.4%">2</span>
+            <span class="co" style="left:21.3%; top:22.9%; width:78%; height:6.1%"></span><span class="cn" style="left:21.4%; top:23%">3</span>
           </figure>
-          <p class="mock-note">① the Discover tab, where ForeFlight Mobile is listed before you connect · ② ForeFlight Mobile, shown here on my Yours tab after connecting. My Connectors page, 30-Oct-2026.</p>
+          <p class="mock-note">① the Discover tab · ② search · ③ select ForeFlight Mobile. Shown here on my Yours tab, after connecting; before you connect, it appears under Discover. My Connectors page, 30-Oct-2026.</p>
         </div>
-        <p class="cap" data-say>In any Claude chat, tap plus, then Connectors, then Manage connectors. Then find ForeFlight Mobile on the Discover tab.</p>
+        <p class="cap" data-say>In any Claude chat, tap plus, then Connectors, then Manage connectors. Open the Discover tab, search for ForeFlight, and select ForeFlight Mobile.</p>
         <a class="try" href="https://claude.ai/customize/connectors/id/foreflight-mobile" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>Open the ForeFlight connector in Claude</a>
       </div>
 
@@ -889,10 +892,15 @@ tr:last-child td{ border-bottom:0; }
       <div class="chap-k">Chapter 7</div>
       <h2>One conversation. Under ten minutes.</h2>
       <div class="stage wrap">
-        <svg class="wrap-bg" viewBox="0 0 700 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-          <path id="wrapRoute" d="M560 380 C 470 300, 330 260, 300 210 S 210 80, 140 40" fill="none" stroke="#f5a623" stroke-opacity=".22" stroke-width="2" stroke-dasharray="6 8" class="pulse-line"/>
-          <circle cx="560" cy="380" r="5" fill="#f5a623" fill-opacity=".5"/><circle cx="300" cy="210" r="5" fill="none" stroke="#f5a623" stroke-opacity=".5" stroke-width="2"/><circle cx="140" cy="40" r="5" fill="#f5a623" fill-opacity=".5"/>
-          <g opacity=".85"><path d="M0 -7 L5 6 L0 3 L-5 6 Z" fill="#f5a623"><animateMotion dur="9s" repeatCount="indefinite" rotate="auto" keyPoints="0;1" keyTimes="0;1"><mpath href="#wrapRoute"/></animateMotion></path></g>
+        <svg class="wrap-bg" viewBox="0 0 700 420" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <g class="wrap-map">
+            <path d="M397.4 10.0 L399.2 9.7 L400.1 10.9 L400.1 12.3 L401.5 13.2 L403.5 13.2 L406.0 12.0 L407.4 12.0 L412.1 15.3 L412.6 16.7 L414.2 18.8 L414.2 20.3 L414.8 21.4 L414.4 23.2 L415.3 25.6 L415.3 27.6 L418.0 29.1 L421.6 30.0 L422.6 30.5 L423.9 30.0 L425.0 30.8 L426.4 31.1 L428.2 30.0 L430.3 30.0 L434.6 27.9 L435.5 26.7 L436.8 26.1 L438.4 26.7 L440.9 26.4 L443.2 25.6 L444.8 26.4 L446.1 26.7 L447.5 26.1 L450.2 27.3 L451.1 29.1 L453.6 27.9 L456.5 27.6 L457.5 28.2 L458.4 27.3 L462.2 25.8 L463.6 25.0 L465.2 25.3 L467.0 26.7 L468.8 26.4 L471.5 25.8 L473.1 25.6 L474.0 24.7 L476.3 23.8 L478.5 22.9 L482.4 22.0 L485.3 21.7 L486.5 20.3 L487.6 19.7 L489.4 20.3 L494.6 19.4 L496.0 19.7 L497.6 19.7 L499.8 18.5 L500.7 17.6 L514.1 17.6 L534.5 17.6 L547.7 17.6 L549.0 20.6 L549.9 21.1 L551.3 22.9 L552.6 22.9 L553.5 24.1 L555.1 24.1 L556.3 25.3 L556.3 26.7 L557.4 27.9 L558.1 29.4 L556.0 32.0 L556.0 33.5 L555.1 34.1 L553.1 37.9 L552.6 39.9 L552.0 42.9 L550.8 43.8 L550.4 45.2 L549.2 46.4 L549.0 47.6 L549.7 49.0 L548.8 50.8 L547.4 52.6 L544.7 54.6 L543.6 56.7 L543.1 59.3 L542.2 61.1 L540.9 62.3 L541.1 63.7 L540.4 64.6 L541.5 66.4 L540.9 67.8 L542.0 68.7 L543.6 68.1 L544.7 69.6 L546.5 69.3 L546.5 70.8 L548.1 71.1 L547.4 73.4 L546.3 73.7 L546.5 74.9 L547.4 75.8 L547.2 77.0 L546.3 78.7 L546.3 80.2 L545.2 81.9 L545.2 135.1 L531.8 135.1 L509.6 135.4 L507.3 135.4 L495.8 135.4 L477.8 135.1 L470.4 135.4 L454.3 135.4 L445.0 135.1 L432.5 135.1 L428.9 134.8 L421.2 134.8 L418.2 135.1 L408.7 135.1 L406.5 134.8 L401.9 135.1 L395.8 135.1 L382.4 135.1 L380.6 133.6 L379.5 132.5 L378.8 130.7 L377.9 127.8 L377.5 125.4 L377.2 122.2 L378.4 118.4 L377.9 115.7 L376.3 113.7 L374.7 110.4 L375.9 108.1 L376.8 105.7 L377.2 103.7 L377.2 102.2 L378.1 100.4 L378.6 97.8 L378.1 96.6 L379.5 95.5 L380.2 94.3 L381.3 91.0 L382.7 86.1 L383.8 79.0 L384.5 73.4 L384.7 68.4 L385.4 63.4 L385.4 61.7 L385.8 57.0 L385.8 54.6 L385.4 53.7 L386.1 51.4 L387.0 45.8 L387.6 42.6 L388.1 38.8 L387.9 37.0 L388.1 34.4 L387.6 32.6 L388.6 27.6 L388.6 25.6 L387.6 24.7 L388.1 22.3 L387.9 20.3 L387.4 19.1 L388.6 18.2 L388.8 15.6 L387.2 10.6 L389.5 12.6 L390.6 12.9 L390.1 12.0 L392.2 11.7 L393.5 12.0 L394.7 11.2 L397.4 10.0Z"/>
+            <path d="M509.6 385.3 L510.7 385.6 L513.0 386.8 L514.8 387.4 L516.1 389.5 L515.7 390.6 L514.8 390.0 L512.5 389.7 L512.1 387.1 L510.5 386.8 L509.6 385.3ZM509.3 398.6 L511.8 401.5 L515.2 404.7 L514.3 404.4 L513.4 405.0 L512.1 404.1 L511.2 402.1 L509.8 399.1ZM499.2 385.0 L499.8 385.9 L499.2 385.0ZM490.8 369.2 L492.4 369.2 L490.8 370.1 L490.1 369.5ZM487.4 391.2 L488.5 390.9 L490.1 392.1 L490.8 392.7 L489.6 393.0 L488.0 392.7 L487.4 391.2ZM479.7 367.7 L481.0 368.0 L482.2 368.6 L483.3 368.3 L484.9 369.5 L486.5 369.5 L487.1 368.6 L488.7 369.2 L487.8 370.1 L485.6 370.4 L484.2 371.2 L480.8 370.7 L480.6 369.2 L479.7 367.7ZM472.2 370.1 L474.0 369.8 L474.7 369.2 L475.8 369.5 L476.9 368.9 L476.9 370.4 L478.3 370.7 L478.5 371.8 L475.1 373.0 L473.8 372.1 L472.2 370.1ZM467.6 368.9 L469.0 368.6 L469.5 367.7 L469.9 368.6 L471.0 369.5 L469.2 369.5 L467.6 368.9ZM382.4 135.1 L394.9 135.1 L401.9 135.1 L406.5 134.8 L408.7 135.1 L418.2 135.1 L421.2 134.8 L428.9 134.8 L432.5 135.1 L445.0 135.1 L454.3 135.4 L470.4 135.4 L477.8 135.1 L477.8 171.8 L477.8 191.8 L477.8 201.8 L477.8 213.5 L477.6 216.5 L477.8 223.2 L479.9 225.3 L489.4 233.5 L498.7 242.0 L503.7 246.7 L511.8 254.1 L522.0 263.5 L527.0 268.2 L537.2 278.1 L562.8 303.1 L581.9 322.2 L587.5 328.4 L599.5 340.7 L599.3 344.2 L600.7 345.7 L601.4 347.5 L603.2 349.2 L605.2 355.1 L605.0 356.6 L606.1 356.9 L608.6 359.2 L609.7 359.8 L610.7 361.3 L610.9 362.4 L608.8 363.9 L607.3 365.1 L606.6 366.0 L604.5 366.8 L603.9 369.2 L601.6 372.1 L602.3 372.7 L602.5 374.2 L601.8 375.4 L602.5 377.1 L602.5 378.9 L601.6 382.1 L601.8 383.3 L601.1 383.9 L598.9 387.4 L597.3 387.4 L598.0 388.9 L597.3 390.3 L598.4 391.5 L598.4 395.0 L597.7 396.8 L598.9 398.6 L600.2 398.6 L602.0 398.6 L603.4 402.1 L603.2 403.8 L601.8 405.6 L599.8 407.4 L598.0 406.8 L597.5 407.7 L563.7 410.9 L543.1 413.2 L542.7 410.6 L542.0 409.1 L541.3 408.5 L540.2 409.1 L539.9 407.4 L540.2 405.6 L539.5 404.7 L540.2 403.3 L539.5 399.1 L538.4 395.9 L537.7 394.4 L534.5 389.7 L532.5 388.0 L531.6 386.8 L530.4 385.9 L528.2 383.6 L525.9 382.1 L524.8 381.5 L523.2 380.3 L521.1 378.0 L519.1 377.1 L517.3 378.9 L515.9 378.3 L515.0 377.7 L513.4 376.8 L514.3 375.9 L513.2 371.8 L512.3 370.1 L510.9 368.9 L508.0 368.9 L506.2 369.2 L505.0 370.1 L503.9 369.2 L501.6 368.6 L498.5 367.1 L495.5 365.7 L494.2 362.1 L492.1 360.7 L490.1 359.2 L488.3 358.3 L485.3 357.7 L484.0 358.3 L482.6 357.7 L480.8 358.0 L477.6 356.6 L475.8 356.6 L474.7 356.3 L471.0 356.3 L467.2 356.9 L466.1 354.5 L464.7 353.6 L463.1 353.0 L464.3 349.5 L463.3 347.7 L464.0 344.8 L462.7 343.6 L463.3 340.7 L463.6 337.2 L462.0 335.7 L460.9 335.4 L458.4 334.5 L457.5 333.4 L458.4 330.1 L458.1 329.0 L457.2 327.5 L455.2 327.2 L452.9 324.5 L451.3 321.9 L449.5 321.3 L448.2 319.8 L447.7 317.8 L446.3 316.6 L445.9 315.4 L444.8 314.6 L444.1 312.2 L442.0 310.4 L440.9 308.1 L438.9 305.5 L436.1 304.0 L435.2 302.8 L434.6 300.8 L433.9 297.2 L434.1 294.9 L433.9 292.5 L435.5 293.7 L436.1 292.8 L436.6 291.4 L437.3 287.8 L435.7 284.0 L434.6 282.8 L433.2 283.4 L430.0 283.1 L427.8 281.7 L425.9 279.0 L424.8 278.4 L423.5 276.1 L423.0 274.6 L423.5 271.4 L422.6 269.0 L422.3 267.9 L420.7 266.7 L420.7 264.9 L421.4 262.3 L420.7 259.0 L421.9 258.5 L423.2 258.2 L424.4 260.8 L424.6 263.7 L426.6 265.2 L428.7 267.3 L430.5 268.7 L430.9 267.6 L430.0 267.0 L429.1 264.9 L428.7 262.0 L426.9 260.8 L425.0 259.0 L425.7 257.0 L425.0 255.2 L422.8 253.8 L424.1 253.2 L425.7 252.3 L426.6 251.4 L425.7 249.4 L423.7 248.5 L422.6 249.1 L421.4 249.4 L421.6 250.5 L421.2 251.7 L422.3 252.9 L421.4 253.5 L421.2 254.6 L422.6 256.1 L421.2 255.8 L421.6 257.6 L420.5 257.9 L419.8 257.0 L417.6 255.5 L416.7 255.8 L414.8 254.1 L413.9 252.6 L412.6 251.7 L411.2 251.7 L409.6 252.6 L410.8 249.4 L411.0 248.2 L410.1 245.8 L409.2 243.5 L408.3 242.0 L406.9 239.4 L405.3 238.2 L404.2 237.6 L402.4 235.8 L399.4 231.4 L398.3 230.9 L397.6 229.7 L395.1 227.6 L393.1 224.7 L394.2 222.6 L393.1 218.2 L391.7 215.3 L391.0 212.6 L391.5 210.0 L392.4 206.8 L392.0 205.6 L392.0 203.8 L390.8 201.5 L390.6 198.8 L389.2 198.0 L388.8 196.5 L385.8 193.3 L385.4 191.8 L384.7 190.9 L382.9 190.0 L379.0 186.2 L379.3 184.7 L379.0 183.0 L377.9 180.9 L378.6 178.6 L379.7 175.6 L383.1 169.2 L384.0 166.5 L384.7 163.6 L383.6 162.7 L383.6 160.4 L384.7 157.7 L385.8 151.6 L385.4 148.3 L384.2 145.1 L383.6 142.7 L381.3 141.6 L382.2 139.5 L382.7 136.9 L382.4 135.1Z"/>
+          </g>
+          <path id="wrapRoute" d="M481.5 357.6 Q 446 268 425.9 178.9 Q 406 112 385.9 59.3" fill="none" stroke="#f5a623" stroke-opacity=".35" stroke-width="2" stroke-dasharray="6 8" class="pulse-line"/>
+          <circle cx="481.5" cy="357.6" r="4.5" fill="#f5a623" fill-opacity=".6"/><circle cx="425.9" cy="178.9" r="4.5" fill="none" stroke="#f5a623" stroke-opacity=".6" stroke-width="2"/><circle cx="385.9" cy="59.3" r="4.5" fill="#f5a623" fill-opacity=".6"/>
+          <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#8b93a1" fill-opacity=".55"><text x="490" y="361">KSBA</text><text x="434" y="183">KRDD</text><text x="394" y="63">KONP</text></g>
+          <g opacity=".9"><path d="M0 -7 L5 6 L0 3 L-5 6 Z" fill="#f5a623"><animateMotion dur="9s" repeatCount="indefinite" rotate="auto"><mpath href="#wrapRoute"/></animateMotion></path></g>
         </svg>
         <div class="ledger">
           <div class="lrow"><div class="lyou">“…a weekend trip to the coast of Oregon. What do airports and weather look like?”<em>2 sentences</em></div><div class="larrow">→</div><div class="lgot"><b data-n="6">0</b> airports compared, plus a 5-day weather trend</div></div>
