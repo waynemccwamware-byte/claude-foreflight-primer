@@ -440,7 +440,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.10</span>
+    <span class="ver mono">v0.11</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -621,16 +621,22 @@ tr:last-child td{ border-bottom:0; }
         <div class="where cl">In Claude</div>
         <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the ForeFlight Mobile connector page with a Connect button">
           <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
-          <rect x="40" y="36" width="44" height="44" rx="8" fill="#2a3240"/>
-          <text x="100" y="56" class="svg-t" font-size="17" font-weight="600">ForeFlight Mobile</text>
-          <text x="100" y="76" class="svg-m" font-size="11.5">Your ForeFlight data in Claude</text>
-          <rect x="460" y="40" width="100" height="34" rx="7" fill="var(--amber)"/>
-          <text x="510" y="62" text-anchor="middle" font-size="13" font-weight="600" fill="#10141a" font-family="IBM Plex Sans, sans-serif">Connect</text>
-          <rect class="ring" x="454" y="34" width="112" height="46" rx="10"/>
-          <g fill="#222a35"><rect x="40" y="110" width="520" height="10" rx="3"/><rect x="40" y="130" width="470" height="10" rx="3"/><rect x="40" y="150" width="500" height="10" rx="3"/><rect x="40" y="170" width="300" height="10" rx="3"/></g>
+          <text x="40" y="30" class="svg-t" font-size="11" style="fill:var(--text-muted)">← Connectors</text>
+          <rect x="40" y="44" width="46" height="46" rx="8" fill="#2a3240"/>
+          <text x="100" y="68" class="svg-t" font-size="18" font-weight="600">ForeFlight Mobile</text>
+          <rect x="262" y="54" width="72" height="18" rx="9" fill="none" stroke="#3a4454"/><text x="298" y="67" text-anchor="middle" class="svg-t" font-size="10" style="fill:var(--text-muted)">Community</text>
+          <text x="100" y="86" class="svg-t" font-size="11.5" style="fill:var(--text-muted)">Plan, brief, and log flights</text>
+          <rect x="470" y="52" width="90" height="32" rx="7" fill="var(--amber)"/>
+          <text x="515" y="73" text-anchor="middle" font-size="13" font-weight="600" fill="#10141a" font-family="IBM Plex Sans, sans-serif">Connect</text>
+          <rect class="ring" x="464" y="46" width="102" height="44" rx="10"/>
+          <rect x="40" y="108" width="520" height="34" rx="6" fill="none" stroke="#3a4454"/>
+          <text x="52" y="129" class="svg-t" font-size="10.5" style="fill:var(--text-muted)">ⓘ Community connectors have undergone automated reviews but aren't verified by Anthropic.</text>
+          <g fill="#222a35"><rect x="40" y="158" width="500" height="9" rx="3"/><rect x="40" y="174" width="450" height="9" rx="3"/></g>
+          <text x="40" y="208" class="svg-t" font-size="12" font-weight="600">Tools</text>
+          <g fill="#222a35"><rect x="40" y="218" width="120" height="16" rx="8"/><rect x="170" y="218" width="96" height="16" rx="8"/><rect x="276" y="218" width="110" height="16" rx="8"/><rect x="396" y="218" width="90" height="16" rx="8"/></g>
         </svg></div>
-        <p class="mock-note">Illustration; real screenshot to come.</p>
-        <p class="cap" data-say>Open ForeFlight Mobile and click Connect. Claude then hands you over to ForeFlight.</p>
+        <p class="mock-note">Drawn from the real ForeFlight Mobile page in Claude (30-Oct-2026). "Community" means the connector passed Anthropic's automated review but isn't verified by Anthropic; the page lists ForeFlight as the maker and says sign-in is required.</p>
+        <p class="cap" data-say>Selecting ForeFlight Mobile opens its page in Claude. Click Connect, and Claude hands you over to ForeFlight to sign in.</p>
       </div>
 
       <div class="sub" data-label="3 · Sign in to ForeFlight">
@@ -652,22 +658,25 @@ tr:last-child td{ border-bottom:0; }
 
       <div class="sub" data-label="4 · Switch on">
         <div class="where cl">In a Claude chat</div>
-        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the tools menu in a chat with ForeFlight Mobile switched on">
+        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the plus menu, Connectors submenu, with ForeFlight Mobile switched on">
           <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
-          <rect x="40" y="186" width="520" height="46" rx="12" fill="#1b222c" stroke="#3a4454"/>
-          <circle cx="66" cy="209" r="13" fill="#2a3240"/><text x="66" y="214" text-anchor="middle" class="svg-t" font-size="16">+</text>
-          <text x="90" y="214" class="svg-m" font-size="12">Ask anything…</text>
-          <rect x="44" y="50" width="250" height="126" rx="10" fill="#1b222c" stroke="#3a4454"/>
-          <text x="60" y="76" class="svg-m" font-size="11">Connectors</text>
-          <text x="60" y="104" class="svg-t" font-size="13">ForeFlight Mobile</text>
-          <rect x="234" y="92" width="38" height="20" rx="10" fill="var(--teal)"/><circle cx="262" cy="102" r="7" fill="#e7e4dc"/>
-          <rect class="ring" x="228" y="86" width="50" height="32" rx="14"/>
-          <text x="60" y="134" class="svg-t" font-size="13" opacity=".5">Web search</text>
-          <rect x="234" y="122" width="38" height="20" rx="10" fill="#3a4454"/><circle cx="244" cy="132" r="7" fill="#8b93a1"/>
-          <text x="60" y="162" class="svg-t" font-size="13" opacity=".5">PlaneWX</text>
+          <rect x="30" y="196" width="540" height="42" rx="12" fill="#1b222c" stroke="#3a4454"/>
+          <circle cx="54" cy="217" r="12" fill="#2a3240"/><text x="54" y="222" text-anchor="middle" class="svg-t" font-size="15">+</text>
+          <rect x="34" y="70" width="170" height="118" rx="10" fill="#1b222c" stroke="#3a4454"/>
+          <g class="svg-t" font-size="12"><text x="50" y="94" style="fill:var(--text-muted)">Upload or add files</text><text x="50" y="118" style="fill:var(--text-muted)">Skills</text><text x="50" y="142">Connectors  ›</text><text x="50" y="166" style="fill:var(--text-muted)">Research</text></g>
+          <rect x="42" y="128" width="154" height="22" rx="5" fill="#2a3240" opacity=".6"/>
+          <text x="50" y="142" class="svg-t" font-size="12">Connectors  ›</text>
+          <rect x="214" y="14" width="236" height="174" rx="10" fill="#1b222c" stroke="#3a4454"/>
+          <g class="svg-t" font-size="12"><text x="230" y="38" style="fill:var(--text-muted)">+  Add connector</text><text x="230" y="60" style="fill:var(--text-muted)">Manage connectors</text></g>
+          <line x1="226" x2="438" y1="70" y2="70" stroke="#3a4454"/>
+          <text x="230" y="92" class="svg-t" font-size="12.5">ForeFlight Mobile</text>
+          <rect x="398" y="80" width="36" height="18" rx="9" fill="#4d94f0"/><circle cx="425" cy="89" r="6.5" fill="#e7e4dc"/>
+          <rect class="ring" x="392" y="74" width="48" height="30" rx="14"/>
+          <g class="svg-t" font-size="12" style="fill:var(--text-muted)"><text x="230" y="118">Google Drive</text><text x="230" y="142">PlaneWX</text><text x="230" y="166">Claude in Chrome</text></g>
+          <g><rect x="398" y="106" width="36" height="18" rx="9" fill="#4d94f0" opacity=".5"/><rect x="398" y="130" width="36" height="18" rx="9" fill="#4d94f0" opacity=".5"/><rect x="398" y="154" width="36" height="18" rx="9" fill="#4d94f0" opacity=".5"/></g>
         </svg></div>
-        <p class="mock-note">Illustration; real screenshot to come.</p>
-        <p class="cap" data-say>In any chat, open the plus or tools menu and make sure ForeFlight Mobile is switched on.</p>
+        <p class="mock-note">Drawn from my own + → Connectors menu in Claude (30-Oct-2026), where every connected connector has its own on/off switch.</p>
+        <p class="cap" data-say>In a chat, tap plus, then Connectors, and check that ForeFlight Mobile's switch is on. If it's off, Claude can't see your ForeFlight data in that chat.</p>
       </div>
 
       <div class="sub" data-label="5 · Test">
