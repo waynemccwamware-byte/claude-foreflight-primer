@@ -242,6 +242,7 @@ svg{ display:block; max-width:100%; height:auto; }
 .you{
   align-self:flex-end; max-width:86%; background:#2a3240; border-radius:12px 12px 2px 12px;
   padding:9px 12px; font-size:13.5px; line-height:1.5; min-height:38px;
+  border:1.5px solid rgba(245,166,35,.75); box-shadow:0 0 12px rgba(245,166,35,.12);
 }
 .you .caret{ display:inline-block; width:7px; height:15px; background:var(--amber); vertical-align:-2px; margin-left:2px; animation:blink 1s steps(1) infinite; }
 @keyframes blink{ 50%{ opacity:0; } }
@@ -360,7 +361,7 @@ tr:last-child td{ border-bottom:0; }
 .ledger{ position:relative; display:grid; gap:8px; }
 .lrow{ display:grid; grid-template-columns:minmax(0,1fr) 22px minmax(0,1.1fr); align-items:center; gap:8px; opacity:0; transform:translateX(-14px); transition:opacity .45s ease, transform .45s ease; }
 .lrow.in{ opacity:1; transform:none; }
-.lyou{ background:rgba(42,50,64,.82); border-radius:10px 10px 2px 10px; padding:8px 10px; font-size:12.5px; line-height:1.45; }
+.lyou{ border:1.5px solid rgba(245,166,35,.75); background:rgba(42,50,64,.82); border-radius:10px 10px 2px 10px; padding:8px 10px; font-size:12.5px; line-height:1.45; }
 .lyou em{ display:block; font-style:normal; font:500 10.5px 'IBM Plex Mono', monospace; color:var(--text-muted); margin-top:3px; }
 .larrow{ color:var(--amber); font-size:18px; text-align:center; }
 .lgot{ border:1px solid var(--bezel); background:rgba(21,27,35,.72); border-radius:10px; padding:8px 10px; font-size:12.8px; line-height:1.45; }
@@ -440,7 +441,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.11</span>
+    <span class="ver mono">v0.12</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -457,13 +458,13 @@ tr:last-child td{ border-bottom:0; }
           <!-- Claude (left) -->
           <rect x="24" y="20" width="200" height="210" rx="12" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
           <text x="124" y="48" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">Claude</text>
-          <rect x="74" y="58" width="136" height="30" rx="10" fill="#2a3240"/>
+          <rect x="74" y="58" width="136" height="30" rx="10" fill="#2a3240" stroke="#f5a623" stroke-opacity=".75" stroke-width="1.5"/>
           <text x="84" y="77" class="svg-t" font-size="11">Hours flown per year?</text>
           <rect x="38" y="96" width="172" height="66" rx="10" fill="#222a35"/>
           <line x1="48" x2="202" y1="146.5" y2="146.5" stroke="#3a4454"/>
           <rect class="hbar" x="50.0" y="131.0" width="8" height="15.0" rx="1.5" style="animation-delay:0.00s"/><rect class="hbar" x="60.9" y="124.3" width="8" height="21.7" rx="1.5" style="animation-delay:0.06s"/><rect class="hbar" x="71.8" y="114.2" width="8" height="31.8" rx="1.5" style="animation-delay:0.12s"/><rect class="hbar" x="82.7" y="118.4" width="8" height="27.6" rx="1.5" style="animation-delay:0.18s"/><rect class="hbar" x="93.6" y="113.4" width="8" height="32.6" rx="1.5" style="animation-delay:0.24s"/><rect class="hbar" x="104.5" y="115.6" width="8" height="30.4" rx="1.5" style="animation-delay:0.30s"/><rect class="hbar" x="115.4" y="106.0" width="8" height="40.0" rx="1.5" style="animation-delay:0.36s"/><rect class="hbar" x="126.3" y="122.3" width="8" height="23.7" rx="1.5" style="animation-delay:0.42s"/><rect class="hbar" x="137.2" y="116.2" width="8" height="29.8" rx="1.5" style="animation-delay:0.48s"/><rect class="hbar" x="148.1" y="119.4" width="8" height="26.6" rx="1.5" style="animation-delay:0.54s"/><rect class="hbar" x="159.0" y="124.8" width="8" height="21.2" rx="1.5" style="animation-delay:0.60s"/><rect class="hbar" x="169.9" y="119.2" width="8" height="26.8" rx="1.5" style="animation-delay:0.66s"/><rect class="hbar" x="180.8" y="126.7" width="8" height="19.3" rx="1.5" style="animation-delay:0.72s"/><rect class="hbar ytd" x="191.7" y="127.0" width="8" height="19.0" rx="1.5" style="animation-delay:0.78s"/>
           <text x="48" y="157" class="svg-m" font-size="8">2013</text><text x="202" y="157" text-anchor="end" class="svg-m" font-size="8">2026</text>
-          <rect x="58" y="172" width="152" height="30" rx="10" fill="#2a3240"/>
+          <rect x="58" y="172" width="152" height="30" rx="10" fill="#2a3240" stroke="#f5a623" stroke-opacity=".75" stroke-width="1.5"/>
           <text x="68" y="191" class="svg-t" font-size="11">Let's plan an Oregon trip</text>
           <!-- ForeFlight (right) -->
           <rect x="416" y="20" width="200" height="210" rx="16" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
@@ -603,6 +604,10 @@ tr:last-child td{ border-bottom:0; }
 
       <div class="sub" data-label="1 · Find ForeFlight">
         <div class="where cl">In Claude</div>
+        <div class="stage chat" style="min-height:0; margin-bottom:10px">
+          <div class="you" style="min-height:0"><span class="mono" style="color:var(--amber)">+</span>  ›  Connectors  ›  Manage connectors</div>
+          <div class="chips"><span class="chip in">In any Claude chat: the + next to the message box</span></div>
+        </div>
         <p class="ways1">In any Claude chat, tap <span class="mono">+</span> → <b>Connectors</b> → <b>Manage connectors</b>. Then ① open the Discover tab, ② search for “ForeFlight”, and ③ select <b>ForeFlight Mobile</b>.</p>
         <div class="stage">
           <figure class="shot">
@@ -683,7 +688,7 @@ tr:last-child td{ border-bottom:0; }
         <div class="where cl">In a Claude chat</div>
         <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: first test prompt and Claude's reply">
           <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
-          <rect x="300" y="24" width="270" height="34" rx="12" fill="#2a3240"/>
+          <rect x="300" y="24" width="270" height="34" rx="12" fill="#2a3240" stroke="#f5a623" stroke-opacity=".75" stroke-width="1.5"/>
           <text x="314" y="46" class="svg-t" font-size="12.5">Let's try the connection to ForeFlight.</text>
           <rect x="30" y="72" width="206" height="20" rx="4" fill="none" stroke="rgba(63,167,160,.5)"/>
           <text x="40" y="86" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="var(--teal)">ForeFlight · list_aircraft</text>
@@ -1249,21 +1254,36 @@ tr:last-child td{ border-bottom:0; }
 
   // ---- narration: captions always on; "Read aloud" is a preview using the browser's own voice ----
   const synth = window.speechSynthesis;
-  if (!synth) document.getElementById('voiceWrap').style.display = 'none';
   function currentCap() {
     const ch = chaps[ci];
     const scope = subState.has(ch) ? ch.querySelectorAll(':scope > .sub')[subState.get(ch)] : ch;
     return scope.querySelector('.cap');
   }
   function stopSpeech() {
-    if (!synth) return;
-    synth.cancel();
+    if (vo) { try { vo.pause(); } catch (e) {} vo = null; }
+    if (synth) synth.cancel();
     document.querySelectorAll('.cap.speaking').forEach(c => c.classList.remove('speaking'));
   }
+  // Voice-over: media/vo/<panel>.mp3 (ch0, ch1, ch3-1 … ch5-5, ch7) plays if present; else the browser voice
+  let vo = null;
+  function panelId() {
+    const ch = chaps[ci];
+    return 'ch' + ci + (subState.has(ch) ? '-' + (subState.get(ch) + 1) : '');
+  }
   function speakCurrent() {
-    if (!synth) return;
     const cap = currentCap();
     if (!cap) return;
+    const a = new Audio('media/vo/' + panelId() + '.mp3');
+    vo = a;
+    cap.classList.add('speaking');
+    a.onended = () => cap.classList.remove('speaking');
+    a.onerror = () => { if (vo === a) { vo = null; speakSynth(cap); } };
+    a.play().catch(() => { if (vo === a) { vo = null; speakSynth(cap); } });
+  }
+  function speakSynth(cap) {
+    if (!synth) { cap.classList.remove('speaking'); return; }
+    if (!cap) return;
+    synth.cancel();
     const u = new SpeechSynthesisUtterance(cap.textContent);
     u.rate = 1.0;
     u.onend = () => cap.classList.remove('speaking');
