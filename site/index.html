@@ -152,6 +152,9 @@ svg{ display:block; max-width:100%; height:auto; }
 .pulse-line{ stroke-dasharray:5 6; animation:dash 1.2s linear infinite; }
 @keyframes dash{ to{ stroke-dashoffset:-22; } }
 
+.hbar{ fill:var(--amber); transform-box:fill-box; transform-origin:bottom; animation:barup .6s cubic-bezier(.2,.8,.2,1) both; }
+.hbar.ytd{ fill:var(--amber-dim); }
+
 /* ---------- chapter 1: cards ---------- */
 .cards{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
 @media (max-width:640px){ .cards{ grid-template-columns:minmax(0,1fr); } }
@@ -394,7 +397,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.5</span>
+    <span class="ver mono">v0.6</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -411,13 +414,14 @@ tr:last-child td{ border-bottom:0; }
           <!-- Claude (left) -->
           <rect x="24" y="20" width="200" height="210" rx="12" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
           <text x="124" y="48" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">Claude</text>
-          <rect x="82" y="64" width="128" height="30" rx="10" fill="#2a3240"/>
-          <text x="92" y="83" class="svg-t" font-size="11">Hours flown in 2025?</text>
-          <rect x="38" y="104" width="150" height="44" rx="10" fill="#222a35"/>
-          <text x="48" y="122" class="svg-t" font-size="11">190.3 hours across</text>
-          <text x="48" y="138" class="svg-t" font-size="11">74 logbook entries.</text>
-          <rect x="82" y="158" width="128" height="30" rx="10" fill="#2a3240"/>
-          <text x="92" y="177" class="svg-t" font-size="11">Plan Oregon in FF</text>
+          <rect x="74" y="58" width="136" height="30" rx="10" fill="#2a3240"/>
+          <text x="84" y="77" class="svg-t" font-size="11">Hours flown per year?</text>
+          <rect x="38" y="96" width="172" height="66" rx="10" fill="#222a35"/>
+          <line x1="48" x2="202" y1="146.5" y2="146.5" stroke="#3a4454"/>
+          <rect class="hbar" x="50.0" y="132.0" width="8" height="14.0" rx="1.5" style="animation-delay:0.00s"/><rect class="hbar" x="60.9" y="125.6" width="8" height="20.4" rx="1.5" style="animation-delay:0.06s"/><rect class="hbar" x="71.8" y="116.2" width="8" height="29.8" rx="1.5" style="animation-delay:0.12s"/><rect class="hbar" x="82.7" y="120.2" width="8" height="25.8" rx="1.5" style="animation-delay:0.18s"/><rect class="hbar" x="93.6" y="106.9" width="8" height="39.1" rx="1.5" style="animation-delay:0.24s"/><rect class="hbar" x="104.5" y="106.0" width="8" height="40.0" rx="1.5" style="animation-delay:0.30s"/><rect class="hbar" x="115.4" y="108.5" width="8" height="37.5" rx="1.5" style="animation-delay:0.36s"/><rect class="hbar" x="126.3" y="123.8" width="8" height="22.2" rx="1.5" style="animation-delay:0.42s"/><rect class="hbar" x="137.2" y="118.1" width="8" height="27.9" rx="1.5" style="animation-delay:0.48s"/><rect class="hbar" x="148.1" y="121.1" width="8" height="24.9" rx="1.5" style="animation-delay:0.54s"/><rect class="hbar" x="159.0" y="126.1" width="8" height="19.9" rx="1.5" style="animation-delay:0.60s"/><rect class="hbar" x="169.9" y="120.9" width="8" height="25.1" rx="1.5" style="animation-delay:0.66s"/><rect class="hbar" x="180.8" y="127.9" width="8" height="18.1" rx="1.5" style="animation-delay:0.72s"/><rect class="hbar ytd" x="191.7" y="129.9" width="8" height="16.1" rx="1.5" style="animation-delay:0.78s"/>
+          <text x="48" y="157" class="svg-m" font-size="8">2013</text><text x="202" y="157" text-anchor="end" class="svg-m" font-size="8">2026</text>
+          <rect x="82" y="172" width="128" height="30" rx="10" fill="#2a3240"/>
+          <text x="92" y="191" class="svg-t" font-size="11">Plan Oregon in FF</text>
           <!-- ForeFlight (right) -->
           <rect x="416" y="20" width="200" height="210" rx="16" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
           <rect x="428" y="34" width="176" height="182" rx="6" fill="#11161d"/>
