@@ -174,7 +174,7 @@ svg{ display:block; max-width:100%; height:auto; }
 .pindrop{ opacity:0; animation:pindrop 6s ease-out infinite; }
 @keyframes pindrop{ 0%{opacity:0; transform:translateY(-14px);} 8%,85%{opacity:1; transform:none;} 100%{opacity:0;} }
 .fly{ animation:fly 4.5s ease-in-out infinite; opacity:0; }
-@keyframes fly{ 0%{opacity:0; transform:translateX(70px);} 15%{opacity:1; transform:translateX(70px);} 45%,80%{opacity:1; transform:none;} 100%{opacity:0; transform:none;} }
+@keyframes fly{ 0%{opacity:0; transform:translateX(-52px);} 15%{opacity:1; transform:translateX(-52px);} 45%,80%{opacity:1; transform:none;} 100%{opacity:0; transform:none;} }
 
 /* ---------- chapter 2: requirements ---------- */
 .req{ display:grid; gap:8px; }
@@ -187,12 +187,12 @@ svg{ display:block; max-width:100%; height:auto; }
 .req-row .src{ font-size:11.5px; color:var(--text-muted); margin-top:4px; }
 .req-row .src a{ color:var(--text-muted); }
 
-.tools{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:8px; }
+.tools{ display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:8px; }
 .tgrp{ border:1px solid var(--bezel); border-radius:8px; background:#151b23; padding:9px 10px; }
 .tgrp h4{ margin:0 0 6px; font-size:12.5px; font-weight:600; display:flex; justify-content:space-between; }
 .tgrp h4 span{ font:500 11px 'IBM Plex Mono', monospace; color:var(--text-muted); }
 .tgrp ul{ margin:0; padding:0; list-style:none; }
-.tgrp li{ display:flex; justify-content:space-between; align-items:baseline; gap:6px; font:400 11.5px 'IBM Plex Mono', monospace; color:var(--text-primary); padding:2px 0; opacity:0; transform:translateX(-6px); transition:opacity .3s ease, transform .3s ease; overflow-wrap:anywhere; }
+.tgrp li{ display:flex; justify-content:space-between; align-items:baseline; gap:6px; font:400 10.5px 'IBM Plex Mono', monospace; color:var(--text-muted); padding:2px 0; opacity:0; transform:translateX(-6px); transition:opacity .3s ease, transform .3s ease; overflow-wrap:anywhere; }
 .tgrp li.in{ opacity:1; transform:none; }
 .wbadge{ white-space:nowrap; flex:0 0 auto; font:600 9px 'IBM Plex Mono', monospace; color:var(--bg-deep); background:var(--amber); border-radius:3px; padding:1px 4px; margin-left:5px; vertical-align:1px; }
 
@@ -206,6 +206,23 @@ svg{ display:block; max-width:100%; height:auto; }
 .subs button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
 .sub{ display:none; }
 .sub.on{ display:block; animation:chapIn .3s ease; }
+
+/* real screenshots with callouts */
+.shot{ position:relative; margin:0; }
+.shot img{ display:block; width:100%; height:auto; border-radius:6px; border:1px solid var(--bezel-hi); }
+.shot .co{ position:absolute; border:2.5px solid var(--amber); border-radius:8px; pointer-events:none; animation:co 1.6s ease-in-out infinite; }
+@keyframes co{ 0%,100%{ box-shadow:0 0 0 0 rgba(245,166,35,.55);} 50%{ box-shadow:0 0 0 6px rgba(245,166,35,0);} }
+.shot figcaption{ font-size:11.5px; color:var(--text-muted); margin-top:6px; }
+
+/* where a step happens */
+.where{ display:inline-flex; align-items:center; gap:6px; margin:0 0 8px; padding:3px 9px; border-radius:4px;
+  font:600 10.5px 'IBM Plex Mono', monospace; letter-spacing:.06em; text-transform:uppercase; }
+.where.cl{ color:var(--amber); border:1px solid var(--amber-dim); background:rgba(245,166,35,.07); }
+.where.ff{ color:#7fb6ff; border:1px solid rgba(77,148,240,.5); background:rgba(77,148,240,.08); }
+.ways{ margin:0 0 10px; padding-left:20px; font-size:13px; line-height:1.55; }
+.ways b{ color:var(--amber); font-weight:600; }
+.shot .cn{ position:absolute; width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%; background:var(--amber); color:#10141a;
+  font:700 11px 'IBM Plex Mono', monospace; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px #10141a; }
 
 /* mock screens (ch3) */
 .mock-note{ font-size:11px; color:var(--text-muted); margin:6px 2px 0; }
@@ -314,6 +331,9 @@ tr:last-child td{ border-bottom:0; }
 .mapcard:hover{ border-color:var(--amber-dim); }
 .mapcard svg{ flex:0 0 140px; width:140px; }
 
+#airportsFrame{ display:block; width:100%; height:600px; border:0; border-radius:8px; background:#0d1116; }
+@media (max-width:560px){ #airportsFrame{ height:540px; } }
+
 /* chapter 6 */
 .habits{ display:grid; gap:8px; }
 .habit{ display:grid; grid-template-columns:30px minmax(0,1fr); gap:10px; padding:10px; border:1px solid var(--bezel); border-radius:8px; background:#151b23; }
@@ -374,9 +394,9 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.1</span>
+    <span class="ver mono">v0.4</span>
   </div>
-  <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to do it, and what it looks like on a real trip and a real logbook.</p>
+  <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
   <nav class="rail" id="rail" aria-label="Chapters"></nav>
 
@@ -387,30 +407,30 @@ tr:last-child td{ border-bottom:0; }
       <div class="chap-k">Chapter 0</div>
       <h2>Why and how to connect Claude and ForeFlight</h2>
       <div class="stage">
-        <svg viewBox="0 0 640 250" role="img" aria-label="ForeFlight data flowing through the connector to Claude, and a new flight flowing back">
-          <!-- tablet -->
-          <rect x="24" y="20" width="200" height="210" rx="16" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
-          <rect x="36" y="34" width="176" height="182" rx="6" fill="#11161d"/>
-          <text x="124" y="58" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">ForeFlight</text>
+        <svg viewBox="0 0 640 250" role="img" aria-label="Your ForeFlight data flowing through the connector to Claude, and new flights flowing back to ForeFlight">
+          <!-- Claude (left) -->
+          <rect x="24" y="20" width="200" height="210" rx="12" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
+          <text x="124" y="48" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">Claude</text>
+          <rect x="82" y="64" width="128" height="30" rx="10" fill="#2a3240"/>
+          <text x="92" y="83" class="svg-t" font-size="11">Hours flown in 2025?</text>
+          <rect x="38" y="104" width="150" height="44" rx="10" fill="#222a35"/>
+          <text x="48" y="122" class="svg-t" font-size="11">190.3 hours across</text>
+          <text x="48" y="138" class="svg-t" font-size="11">74 logbook entries.</text>
+          <rect x="82" y="158" width="128" height="30" rx="10" fill="#2a3240"/>
+          <text x="92" y="177" class="svg-t" font-size="11">Plan Oregon in FF</text>
+          <!-- ForeFlight (right) -->
+          <rect x="416" y="20" width="200" height="210" rx="16" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
+          <rect x="428" y="34" width="176" height="182" rx="6" fill="#11161d"/>
+          <text x="516" y="58" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">ForeFlight</text>
           <g font-size="12">
-            <rect x="52" y="72" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="89" class="svg-t">Logbook</text>
-            <rect x="52" y="104" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="121" class="svg-t">Aircraft &amp; W&amp;B</text>
-            <rect x="52" y="136" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="153" class="svg-t">Saved flights</text>
-            <rect x="52" y="168" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="185" class="svg-t">Weather &amp; airports</text>
+            <rect x="444" y="72" width="144" height="26" rx="5" fill="#222a35"/><text x="456" y="89" class="svg-t">Logbook</text>
+            <rect x="444" y="104" width="144" height="26" rx="5" fill="#222a35"/><text x="456" y="121" class="svg-t">Aircraft &amp; W&amp;B</text>
+            <rect x="444" y="136" width="144" height="26" rx="5" fill="#222a35"/><text x="456" y="153" class="svg-t">Saved flights</text>
+            <rect x="444" y="168" width="144" height="26" rx="5" fill="#222a35"/><text x="456" y="185" class="svg-t">Weather &amp; airports</text>
           </g>
-          <!-- chat -->
-          <rect x="416" y="20" width="200" height="210" rx="12" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
-          <text x="516" y="48" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">Claude</text>
-          <rect x="474" y="64" width="128" height="30" rx="10" fill="#2a3240"/>
-          <text x="484" y="83" class="svg-t" font-size="11">Am I IFR current?</text>
-          <rect x="430" y="104" width="150" height="44" rx="10" fill="#222a35"/>
-          <text x="440" y="122" class="svg-t" font-size="11">Yes: 17 approaches,</text>
-          <text x="440" y="138" class="svg-t" font-size="11">2 holds in the window.</text>
-          <rect x="474" y="158" width="128" height="30" rx="10" fill="#2a3240"/>
-          <text x="484" y="177" class="svg-t" font-size="11">Plan Oregon in FF</text>
-          <!-- connector -->
-          <path id="pathOut" d="M224 112 C300 92, 340 92, 416 112" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
-          <path id="pathBack" d="M416 150 C340 170, 300 170, 224 150" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
+          <!-- connector: data flows right to left, new flights left to right -->
+          <path id="pathOut" d="M416 112 C340 92, 300 92, 224 112" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
+          <path id="pathBack" d="M224 150 C300 170, 340 170, 416 150" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
           <text x="320" y="84" text-anchor="middle" class="svg-m" font-size="11">your data</text>
           <text x="320" y="186" text-anchor="middle" class="svg-m" font-size="11">new flights</text>
           <rect x="282" y="119" width="76" height="24" rx="12" fill="#10141a" stroke="#7a5a1e"/>
@@ -423,7 +443,7 @@ tr:last-child td{ border-bottom:0; }
           </g>
         </svg>
       </div>
-      <p class="cap" data-say>Your ForeFlight account already holds years of flying: your logbook, your aircraft, your saved flights. Connect it to Claude, and you can ask about all of it in plain English, and have Claude build flights right back into ForeFlight.</p>
+      <p class="cap" data-say>Your ForeFlight account already holds years of flying: your logbook, your aircraft, your saved flights. Connect ForeFlight to Claude, and you can ask Claude about all of that in plain English, and have Claude build flights right back into ForeFlight.</p>
       <p class="small" style="margin:10px 2px 0">(ForeFlight's connector also works in ChatGPT. This primer covers Claude.)</p>
     </section>
 
@@ -432,7 +452,7 @@ tr:last-child td{ border-bottom:0; }
       <div class="chap-k">Chapter 1</div>
       <h2>Why connect</h2>
       <div class="cards">
-        <button class="card" type="button" data-jump="5:2">
+        <button class="card" type="button" data-jump="4:1">
           <div class="mini">
             <svg viewBox="0 0 120 100" aria-hidden="true">
               <path d="M10 14 L58 10 L70 30 L64 52 L78 70 L72 92 L52 80 L40 60 L24 48 L14 30 Z" fill="#1b222c" stroke="#3a4454"/>
@@ -452,7 +472,7 @@ tr:last-child td{ border-bottom:0; }
           <span>Every departure, destination and route waypoint in your logbook, on one map.</span>
           <span class="go">See the map →</span>
         </button>
-        <button class="card" type="button" data-jump="4:1">
+        <button class="card" type="button" data-jump="5:1">
           <div class="mini">
             <svg viewBox="0 0 120 100" aria-hidden="true">
               <path d="M44 4 C38 20, 42 34, 36 48 S 30 76, 34 96" fill="none" stroke="#4d94f0" stroke-width="2" opacity=".6"/>
@@ -470,17 +490,17 @@ tr:last-child td{ border-bottom:0; }
           <span>Ask about a weekend on the Oregon coast. Claude pulls airports, fuel prices, pilot notes and the forecast trend.</span>
           <span class="go">See the trip →</span>
         </button>
-        <button class="card" type="button" data-jump="4:2">
+        <button class="card" type="button" data-jump="5:2">
           <div class="mini">
             <svg viewBox="0 0 120 100" aria-hidden="true">
-              <rect x="6" y="14" width="56" height="74" rx="8" fill="#1b222c" stroke="#3a4454"/>
-              <text x="34" y="28" text-anchor="middle" font-size="8" fill="#e7e4dc" font-family="IBM Plex Sans, sans-serif">ForeFlight</text>
-              <g class="fly" style="animation-delay:0s"><rect x="14" y="34" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
-              <g class="fly" style="animation-delay:.35s"><rect x="14" y="48" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
-              <g class="fly" style="animation-delay:.7s"><rect x="14" y="62" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
-              <g class="fly" style="animation-delay:1.05s"><rect x="14" y="76" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
-              <rect x="74" y="30" width="40" height="40" rx="8" fill="#1b222c" stroke="#3a4454"/>
-              <text x="94" y="54" text-anchor="middle" font-size="8" fill="#e7e4dc" font-family="IBM Plex Sans, sans-serif">Claude</text>
+              <rect x="6" y="30" width="40" height="40" rx="8" fill="#1b222c" stroke="#3a4454"/>
+              <text x="26" y="54" text-anchor="middle" font-size="8" fill="#e7e4dc" font-family="IBM Plex Sans, sans-serif">Claude</text>
+              <rect x="58" y="14" width="56" height="74" rx="8" fill="#1b222c" stroke="#3a4454"/>
+              <text x="86" y="28" text-anchor="middle" font-size="8" fill="#e7e4dc" font-family="IBM Plex Sans, sans-serif">ForeFlight</text>
+              <g class="fly" style="animation-delay:0s"><rect x="66" y="34" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
+              <g class="fly" style="animation-delay:.35s"><rect x="66" y="48" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
+              <g class="fly" style="animation-delay:.7s"><rect x="66" y="62" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
+              <g class="fly" style="animation-delay:1.05s"><rect x="66" y="76" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
             </svg>
           </div>
           <b>Plans go back to ForeFlight</b>
@@ -488,7 +508,7 @@ tr:last-child td{ border-bottom:0; }
           <span class="go">See the flights →</span>
         </button>
       </div>
-      <p class="aside">Bonus: on the first test, Claude spotted cleanup items in my ForeFlight data, such as two airplanes saved twice.</p>
+      <p class="aside">Bonus: on my first test, Claude spotted cleanup items in my ForeFlight data, such as two airplanes saved twice.</p>
       <p class="cap" data-say>Three reasons to connect. See everywhere your logbook has taken you. Research a trip in one conversation. And when you like the plan, have Claude put the flights straight into ForeFlight.</p>
     </section>
 
@@ -506,26 +526,26 @@ tr:last-child td{ border-bottom:0; }
           </div>
         </div>
         <div class="req-row">
-          <div class="ic q" aria-hidden="true">?</div>
+          <div class="ic ok" aria-hidden="true">✓</div>
           <div>
-            <b>A Claude account</b>
-            <p>Claude on the web or the desktop app. Which Claude plans include directory connectors is being confirmed; this line will be updated.</p>
-            <div class="src">To be confirmed on Anthropic's help pages</div>
+            <b>A Claude account, any plan</b>
+            <p>Connectors from Claude's directory work on every Claude plan, including Free. On Team and Enterprise plans, an owner has to turn ForeFlight Mobile on for the organization first. Do the setup on the web or desktop app; Anthropic lists installing connectors on mobile as beta.</p>
+            <div class="src">Source: <a href="https://support.claude.com/en/articles/11176164-use-connectors-to-extend-claude-s-capabilities" target="_blank" rel="noopener">Claude Help Center, "Use connectors to extend Claude's capabilities"</a>, read 30-Oct-2026</div>
           </div>
         </div>
         <div class="req-row">
           <div class="ic ok" aria-hidden="true">✓</div>
           <div>
-            <b>Know what it can change</b>
-            <p>It can create and edit flights and create, edit or remove draft logbook entries. It can't delete flights, aircraft or approved logbook entries.</p>
+            <b>Know what Claude can change in ForeFlight</b>
+            <p>Claude can create and edit flights and create, edit or remove draft logbook entries. Claude can't delete flights, aircraft or approved logbook entries.</p>
             <div class="src">Source: <a href="https://support.foreflight.com/hc/en-us/articles/41094144288151-Can-ForeFlight-AI-Connector-delete-data" target="_blank" rel="noopener">ForeFlight Support, "Can ForeFlight AI Connector delete data"</a>, read 30-Oct-2026</div>
           </div>
         </div>
       </div>
       <h3 style="margin:16px 0 8px">What Claude can reach: <span class="mono" style="color:var(--amber)">23</span> tools in 5 groups</h3>
       <div class="tools" id="toolMap"></div>
-      <p class="small" style="margin:6px 0 0"><span class="wbadge">WRITE</span> changes data in ForeFlight; everything else only reads. Tool list as Claude saw it on 30-Oct-2026.</p>
-      <p class="cap" data-say>You'll need an individual ForeFlight plan, Starter, Essential or Premium, and a Claude account. The connector is a ForeFlight preview, so expect it to grow and change.</p>
+      <p class="small" style="margin:6px 0 0"><span class="wbadge">WRITE</span> changes data in ForeFlight; everything else only reads. Tool list as Claude saw the connector on 30-Oct-2026.</p>
+      <p class="cap" data-say>You'll need an individual ForeFlight plan, Starter, Essential or Premium, and a Claude account on any plan. ForeFlight calls the connector a preview, so expect ForeFlight to add and change features.</p>
     </section>
 
     <!-- ===================== 3 CONNECT ===================== -->
@@ -534,28 +554,27 @@ tr:last-child td{ border-bottom:0; }
       <h2>Connect, in five steps</h2>
       <div class="subs" role="tablist" aria-label="Steps"></div>
 
-      <div class="sub" data-label="1 · Find it">
-        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the Connectors page with ForeFlight Mobile listed">
-          <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
-          <rect x="0" y="0" width="130" height="250" fill="#11161d"/>
-          <g class="svg-m" font-size="11"><text x="16" y="26" font-size="10">Settings</text><text x="16" y="50">General</text><text x="16" y="72">Account</text><text x="16" y="94">Privacy</text><text x="16" y="116">Capabilities</text><text x="16" y="138" style="fill:var(--amber)">Connectors</text></g>
-          <text x="152" y="34" class="svg-t" font-size="15" font-weight="600">Connectors</text>
-          <rect x="256" y="20" width="118" height="22" rx="5" fill="#222a35"/><text x="268" y="35" class="svg-m" font-size="11">Yours</text><text x="312" y="35" class="svg-m" font-size="11">Discover</text>
-          <rect x="152" y="52" width="290" height="28" rx="6" fill="#222a35"/><text x="164" y="70" class="svg-m" font-size="12">Search: foreflight</text>
-          <rect x="152" y="92" width="420" height="44" rx="8" fill="#1b222c" stroke="#3a4454"/>
-          <rect x="164" y="102" width="24" height="24" rx="5" fill="#2a3240"/>
-          <text x="198" y="118" class="svg-t" font-size="13" font-weight="600">ForeFlight Mobile</text>
-          <text x="440" y="118" class="svg-m" font-size="10.5">Web · Community</text>
-          <rect class="ring" x="148" y="88" width="428" height="52" rx="10"/>
-          <rect x="152" y="148" width="420" height="44" rx="8" fill="#171d26" opacity=".6"/>
-          <rect x="152" y="200" width="420" height="44" rx="8" fill="#171d26" opacity=".35"/>
-        </svg></div>
-        <p class="mock-note">Illustration; real screenshot to come.</p>
-        <p class="cap" data-say>In Claude, open Settings, then Connectors, and search for ForeFlight Mobile. Or use the direct link below.</p>
+      <div class="sub" data-label="1 · Find ForeFlight">
+        <div class="where cl">In Claude</div>
+        <ol class="ways">
+          <li><b>Quickest:</b> in any Claude chat, tap <span class="mono">+</span> → Connectors → Manage connectors.</li>
+          <li><b>Or in Settings:</b> Connectors is at the very bottom of the left column, under Customize (①).</li>
+        </ol>
+        <div class="stage">
+          <figure class="shot">
+            <img src="media/claude-connectors.webp" width="1400" height="1094" alt="Claude Settings, Connectors page, with ForeFlight Mobile listed and connected" loading="lazy">
+            <span class="co" style="left:1.4%; top:91.5%; width:18%; height:4.5%"></span><span class="cn" style="left:20.8%; top:91.6%">1</span>
+            <span class="co" style="left:42.2%; top:7.2%; width:8.6%; height:4.2%"></span><span class="cn" style="left:51.6%; top:7.4%">2</span>
+            <span class="co" style="left:21.3%; top:22.9%; width:78%; height:6.1%"></span><span class="cn" style="left:21.4%; top:23%">3</span>
+          </figure>
+          <p class="mock-note">① Connectors, under Customize · ② the Discover tab, where ForeFlight Mobile is listed before you connect · ③ ForeFlight Mobile, shown here on my Yours tab after connecting. My screen, 30-Oct-2026.</p>
+        </div>
+        <p class="cap" data-say>In Claude, open Connectors. The quickest way is from any chat: tap plus, then Connectors, then Manage connectors. In Settings, Connectors is at the very bottom, under Customize. Then find ForeFlight Mobile on the Discover tab.</p>
         <a class="try" href="https://claude.ai/customize/connectors/id/foreflight-mobile" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>Open the ForeFlight connector in Claude</a>
       </div>
 
       <div class="sub" data-label="2 · Connect">
+        <div class="where cl">In Claude</div>
         <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the ForeFlight Mobile connector page with a Connect button">
           <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
           <rect x="40" y="36" width="44" height="44" rx="8" fill="#2a3240"/>
@@ -567,10 +586,11 @@ tr:last-child td{ border-bottom:0; }
           <g fill="#222a35"><rect x="40" y="110" width="520" height="10" rx="3"/><rect x="40" y="130" width="470" height="10" rx="3"/><rect x="40" y="150" width="500" height="10" rx="3"/><rect x="40" y="170" width="300" height="10" rx="3"/></g>
         </svg></div>
         <p class="mock-note">Illustration; real screenshot to come.</p>
-        <p class="cap" data-say>Tap Connect. Claude hands you over to ForeFlight to sign in.</p>
+        <p class="cap" data-say>Open ForeFlight Mobile and click Connect. Claude then hands you over to ForeFlight.</p>
       </div>
 
-      <div class="sub" data-label="3 · Sign in">
+      <div class="sub" data-label="3 · Sign in to ForeFlight">
+        <div class="where ff">In ForeFlight's sign-in window</div>
         <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: ForeFlight sign-in and approval screen">
           <rect x="0" y="0" width="600" height="250" rx="8" fill="#0d1116"/>
           <rect x="170" y="16" width="260" height="218" rx="12" fill="#1b222c" stroke="#3a4454"/>
@@ -582,11 +602,12 @@ tr:last-child td{ border-bottom:0; }
           <text x="300" y="186" text-anchor="middle" font-size="13" font-weight="600" fill="#10141a" font-family="IBM Plex Sans, sans-serif">Approve</text>
           <rect class="ring" x="220" y="158" width="160" height="46" rx="10"/>
         </svg></div>
-        <p class="mock-note">Illustration; real screenshot to come. ForeFlight's exact wording may differ.</p>
-        <p class="cap" data-say>Sign in with your ForeFlight account and approve. Your password goes to ForeFlight, never to Claude.</p>
+        <p class="mock-note">Illustration. ForeFlight documents this sign-in and approval step for ChatGPT; Claude's version of these screens is still to be captured, and the wording may differ.</p>
+        <p class="cap" data-say>ForeFlight asks you to sign in with your ForeFlight account, if you aren't already signed in, and to approve access for Claude.</p>
       </div>
 
-      <div class="sub" data-label="4 · Turn it on">
+      <div class="sub" data-label="4 · Switch on">
+        <div class="where cl">In a Claude chat</div>
         <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the tools menu in a chat with ForeFlight Mobile switched on">
           <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
           <rect x="40" y="186" width="520" height="46" rx="12" fill="#1b222c" stroke="#3a4454"/>
@@ -605,7 +626,8 @@ tr:last-child td{ border-bottom:0; }
         <p class="cap" data-say>In any chat, open the plus or tools menu and make sure ForeFlight Mobile is switched on.</p>
       </div>
 
-      <div class="sub" data-label="5 · Test it">
+      <div class="sub" data-label="5 · Test">
+        <div class="where cl">In a Claude chat</div>
         <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: first test prompt and Claude's reply">
           <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
           <rect x="300" y="24" width="270" height="34" rx="12" fill="#2a3240"/>
@@ -619,14 +641,44 @@ tr:last-child td{ border-bottom:0; }
           <text x="46" y="200" class="svg-m" font-size="11">Want to try a currency check next?</text>
         </svg></div>
         <p class="mock-note">Reply trimmed from my first test, 13-Oct-2026.</p>
-        <p class="cap" data-say>Ask Claude to try the connection. It should come back with your aircraft. If it does, you're connected.</p>
+        <p class="cap" data-say>Ask Claude to try the connection. Claude should come back with your aircraft from ForeFlight. If Claude does, you're connected.</p>
         <a class="try" data-prompt="Let's try the connection to ForeFlight." target="_blank" rel="noopener"></a>
       </div>
     </section>
 
-    <!-- ===================== 4 ONE TRIP ===================== -->
-    <section class="chap" data-title="One trip" aria-label="One trip, start to finish">
+    <!-- ===================== 4 LOGBOOK ===================== -->
+    <section class="chap" data-title="Logbook" aria-label="Your logbook">
       <div class="chap-k">Chapter 4</div>
+      <h2>Your logbook, in a question</h2>
+      <div class="subs" role="tablist" aria-label="Scenes"></div>
+
+      <div class="sub" data-label="A · Totals">
+        <div class="stage">
+          <div class="you" style="margin:0 0 12px auto; width:fit-content" data-type="Summarize my logbook by year: total hours, cross-country, and approaches."></div>
+          <div class="stat-row" style="margin-bottom:10px">
+            <div class="stat"><div class="v" data-count="3791.8" data-dec="1">0</div><div class="l">total hours, 2013–2026</div></div>
+            <div class="stat"><div class="v" data-count="1145">0</div><div class="l">logbook entries</div></div>
+            <div class="stat"><div class="v" data-count="722">0</div><div class="l">approaches</div></div>
+          </div>
+          <div class="chart-wrap" id="hoursChart"></div>
+          <p class="small" style="margin:6px 0 0">Total hours per year. 2026 is through 30-Oct. Source: my ForeFlight logbook through the connector, 30-Oct-2026.</p>
+        </div>
+        <p class="cap" data-say>Fourteen years of logbook, summarized by Claude from one question.</p>
+        <a class="try" data-prompt="Summarize my ForeFlight logbook by year: total hours, cross-country hours and approaches." target="_blank" rel="noopener"></a>
+      </div>
+
+      <div class="sub" data-label="B · Map">
+        <div class="stage" style="padding:0">
+          <iframe id="airportsFrame" title="Airports Visited, live map" data-src="https://geezer-geek-pilot-control-panel.netlify.app/airports/?embed=1&amp;tour=KONP,XSQA" loading="lazy"></iframe>
+        </div>
+        <p class="small" style="margin:6px 2px 0">The live map, running a short tour: West &amp; Baja, then Newport, Oregon (KONP), then San Pedro de la Cueva, Sonora (XSQA). Touch the map to take over. <a href="https://geezer-geek-pilot-control-panel.netlify.app/airports/" target="_blank" rel="noopener">Open the full map</a></p>
+        <p class="cap" data-say>I asked Claude for every airport in my ForeFlight logbook, departures, destinations and route waypoints, and Claude built this map. Here it zooms to Newport, Oregon, then to San Pedro de la Cueva in Sonora, Mexico.</p>
+      </div>
+    </section>
+
+    <!-- ===================== 5 ONE TRIP ===================== -->
+    <section class="chap" data-title="One trip" aria-label="One trip, start to finish">
+      <div class="chap-k">Chapter 5</div>
       <h2>One trip, start to finish</h2>
       <p class="small" style="margin:-4px 0 10px">A replay of my real chat from 13-Oct-2026, trimmed. KSBA to the Oregon coast in N211WP.</p>
       <div class="subs" role="tablist" aria-label="Scenes"></div>
@@ -641,7 +693,7 @@ tr:last-child td{ border-bottom:0; }
               <div class="stat"><div class="v">44</div><div class="l">saved aircraft</div></div>
               <div class="stat"><div class="v">N211WP</div><div class="l">primary · DA40 XLS · KSBA</div></div>
             </div>
-            <div class="flag"><b>Worth cleaning up:</b> N211WP and N451RK are each saved twice, with different weights and W&amp;B profiles. Easy to plan in the wrong one.</div>
+            <div class="flag"><b>Worth cleaning up:</b> N211WP and N451RK are each saved twice. One N211WP copy has no W&amp;B profile and different defaults; the two N451RK copies differ in W&amp;B profile and empty weight. Easy to plan in the wrong one.</div>
           </div>
         </div>
         <p class="cap" data-say>First, a quick check. Claude found my 44 saved aircraft, and flagged two airplanes that were in there twice. That's a cleanup I'd never have spotted.</p>
@@ -673,7 +725,7 @@ tr:last-child td{ border-bottom:0; }
                 <span><i style="background:var(--cat-ifr)"></i>IFR</span>
                 <span><i style="background:var(--cat-lifr)"></i>LIFR</span>
               </div>
-              <p class="small" style="margin:6px 0 0">KONP trend as Claude described it from ForeFlight's 10-day model outlook and the NWS Portland discussion, 13-Oct-2026. A trend, not a TAF; bands are approximate.</p>
+              <p class="small" style="margin:6px 0 0">KONP trend as Claude described the outlook from ForeFlight's 10-day model outlook and the NWS Portland discussion, 13-Oct-2026. A trend, not a TAF; bands are approximate.</p>
             </div>
           </div>
         </div>
@@ -708,6 +760,11 @@ tr:last-child td{ border-bottom:0; }
                 <div class="fcard"><span class="n">4/4</span><span class="r">KRDD–KSBA</span><span class="a">7,500</span><span class="w">Sun 18-Oct 10:45</span></div>
               </div>
             </div>
+            <figure class="shot">
+              <img src="media/foreflight-flights.webp" width="1400" height="919" alt="ForeFlight Flights list on an iPad showing the four N211WP legs Claude created, with the KSBA to KRDD leg on the map" loading="lazy">
+              <span class="co" style="left:0.4%; top:19.6%; width:32.6%; height:48.6%"></span>
+              <figcaption>The same four flights in ForeFlight on my iPad, 13-Oct-2026. Screenshot of ForeFlight Mobile.</figcaption>
+            </figure>
           </div>
         </div>
         <p class="cap" data-say>I also had Claude score departure windows with another connector, PlaneWX. Friday morning won. Then I said yes, please, and four flights showed up in ForeFlight, in my airplane, with my weight and balance profile.</p>
@@ -718,72 +775,14 @@ tr:last-child td{ border-bottom:0; }
       <!-- Scene 4 -->
       <div class="sub scene" data-label="4 · Verify">
         <div class="stage chat">
-          <div class="you" data-type="(Claude flagged these on its own.)"></div>
+          <div class="you" data-type="(Claude flagged these without being asked.)"></div>
           <div class="ans">
             <div class="note"><b>Sources disagreed.</b> PlaneWX graded a 200–900 ft ceiling at KONP Thursday from one MOS run; ForeFlight's MOS showed FEW/SCT clouds, not a ceiling, and its daily outlook showed sunny. Claude said to re-brief once a TAF covered Thursday.</div>
             <div class="note"><b>Tight timing.</b> With the KRDD fuel stop, arrival at KONP would be about 14:45–15:00 Friday, right when the hourly model brought in stratus near 300 ft. Claude offered to move both Friday legs earlier.</div>
           </div>
         </div>
-        <p class="cap" data-say>The best part: Claude told me where its sources disagreed, and that my Friday arrival was cutting it close. It's a research partner, not a briefing. I'm still pilot in command.</p>
+        <p class="cap" data-say>The best part: Claude told me where its sources disagreed, and that my Friday arrival was cutting things close. Claude is a research partner, not a briefing. I'm still pilot in command.</p>
         <div><button class="btn replay" type="button">↻ Replay scene</button></div>
-      </div>
-    </section>
-
-    <!-- ===================== 5 LOGBOOK ===================== -->
-    <section class="chap" data-title="Logbook" aria-label="Your logbook">
-      <div class="chap-k">Chapter 5</div>
-      <h2>Your logbook, in a question</h2>
-      <div class="subs" role="tablist" aria-label="Scenes"></div>
-
-      <div class="sub" data-label="A · Totals">
-        <div class="stage">
-          <div class="you" style="margin:0 0 12px auto; width:fit-content" data-type="Summarize my logbook by year: total hours, cross-country, and approaches."></div>
-          <div class="stat-row" style="margin-bottom:10px">
-            <div class="stat"><div class="v" data-count="3791.8" data-dec="1">0</div><div class="l">total hours, 2013–2026</div></div>
-            <div class="stat"><div class="v" data-count="1145">0</div><div class="l">logbook entries</div></div>
-            <div class="stat"><div class="v" data-count="722">0</div><div class="l">approaches</div></div>
-          </div>
-          <div class="chart-wrap" id="hoursChart"></div>
-          <p class="small" style="margin:6px 0 0">Total hours per year. 2026 is through 30-Oct. Source: my ForeFlight logbook through the connector, 30-Oct-2026.</p>
-        </div>
-        <p class="cap" data-say>Thirteen years of logbook, summarized in one question.</p>
-        <a class="try" data-prompt="Summarize my ForeFlight logbook by year: total hours, cross-country hours and approaches." target="_blank" rel="noopener"></a>
-      </div>
-
-      <div class="sub" data-label="B · Currency">
-        <div class="stage">
-          <div class="you" style="margin:0 0 12px auto; width:fit-content" data-type="Am I current?"></div>
-          <div class="gauges">
-            <div class="gauge" data-frac="1"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="none" stroke="#2a323f" stroke-width="6"/><circle class="arc" cx="30" cy="30" r="24" fill="none" stroke-width="6" transform="rotate(-90 30 30)"/></svg>
-              <div><b>IFR</b><span>17 approaches (6 needed), 2 holds (1 needed). Current through 31-Jan-2027.</span></div></div>
-            <div class="gauge" data-frac="1"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="none" stroke="#2a323f" stroke-width="6"/><circle class="arc" cx="30" cy="30" r="24" fill="none" stroke-width="6" transform="rotate(-90 30 30)"/></svg>
-              <div><b>Takeoffs &amp; landings, ASEL</b><span>16 of each (3 needed). Current through 07-Jan-2027.</span></div></div>
-            <div class="gauge" data-frac="1"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="none" stroke="#2a323f" stroke-width="6"/><circle class="arc" cx="30" cy="30" r="24" fill="none" stroke-width="6" transform="rotate(-90 30 30)"/></svg>
-              <div><b>Flight review</b><span>Current through 31-Oct-2028.</span></div></div>
-          </div>
-          <p class="small" style="margin:8px 0 0">From ForeFlight's own currency trackers through the connector, 30-Oct-2026.</p>
-        </div>
-        <p class="cap" data-say>Claude reads the same currency trackers ForeFlight does, and can tell you exactly how many approaches you have to spare.</p>
-        <a class="try" data-prompt="Am I current? Check my ForeFlight logbook currencies." target="_blank" rel="noopener"></a>
-      </div>
-
-      <div class="sub" data-label="C · Map">
-        <div class="stage">
-          <a class="mapcard" href="https://geezer-geek-pilot-control-panel.netlify.app/airports/" target="_blank" rel="noopener">
-            <svg viewBox="0 0 140 110" aria-hidden="true">
-              <path d="M14 10 L70 6 L84 30 L78 56 L96 78 L88 104 L62 92 L48 68 L28 54 L16 34 Z" fill="#1b222c" stroke="#3a4454"/>
-              <g fill="var(--amber)">
-                <circle class="dotpop" cx="36" cy="30" r="3" style="animation-delay:.1s"/><circle class="dotpop" cx="52" cy="22" r="3" style="animation-delay:.35s"/>
-                <circle class="dotpop" cx="44" cy="46" r="3" style="animation-delay:.6s"/><circle class="dotpop" cx="62" cy="40" r="3" style="animation-delay:.85s"/>
-                <circle class="dotpop" cx="70" cy="62" r="3" style="animation-delay:1.1s"/><circle class="dotpop" cx="80" cy="82" r="3" style="animation-delay:1.35s"/>
-                <circle class="dotpop" cx="72" cy="96" r="3" style="animation-delay:1.6s"/><circle class="dotpop" cx="26" cy="20" r="3" style="animation-delay:1.85s"/>
-                <circle class="dotpop" cx="58" cy="54" r="3" style="animation-delay:2.1s"/>
-              </g>
-            </svg>
-            <div><b style="font-size:14px">Airports Visited</b><p class="small" style="margin:4px 0 0">Every airport in my ForeFlight logbook (departures, destinations and route waypoints), built by Claude from the connector. Opens the live map.</p></div>
-          </a>
-        </div>
-        <p class="cap" data-say>I asked Claude for every airport in my logbook, departures, destinations and route waypoints, and it built this map.</p>
       </div>
     </section>
 
@@ -795,15 +794,15 @@ tr:last-child td{ border-bottom:0; }
         <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg>
           <div><b>Verify before you fly</b><p>ForeFlight's support pages warn that AI can make mistakes, and say to confirm weather, NOTAMs, airport data and performance in the ForeFlight app and official sources. You're still pilot in command.</p></div></div>
         <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M4 20 20 4"/></svg>
-          <div><b>Writes are limited, and drafts wait for you</b><p>The connector can create and edit flights and work with draft logbook entries. It can't delete flights, aircraft or approved entries, and a draft becomes part of your logbook only when you approve it in ForeFlight.</p></div></div>
+          <div><b>Writes are limited, and drafts wait for you</b><p>The connector can create and edit flights and work with draft logbook entries. Claude can't delete flights, aircraft or approved entries, and a draft becomes part of your logbook only when you approve the draft in ForeFlight.</p></div></div>
         <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/><path d="M11 8v3"/><circle cx="11" cy="14" r=".5" fill="currentColor"/></svg>
           <div><b>Watch the numbers</b><p>Answers are only as good as the logbook. Mine shows 214.5 PIC hours in 2023 against 209.0 total hours, a data-entry slip Claude reports as is. Check totals that look off.</p></div></div>
         <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12"/><path d="m12 6 6 6-6 6"/><path d="M20 4v16"/></svg>
           <div><b>Your data leaves ForeFlight</b><p>Connected data is sent to the AI provider to produce answers. ForeFlight's connector terms say so; worth reading once.</p></div></div>
         <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
-          <div><b>It's a preview</b><p>Tools change. This page is rechecked monthly; the date below shows the last check.</p></div></div>
+          <div><b>The connector is a preview</b><p>ForeFlight's tools change. This page is rechecked monthly; the date below shows the last check.</p></div></div>
       </div>
-      <p class="cap" data-say>Use it like a sharp copilot doing the research. It's fast, and it's usually right. But it's not a briefing, and it doesn't sign the logbook. You do.</p>
+      <p class="cap" data-say>Use Claude like a sharp copilot doing the research. Claude is fast, and usually right. But Claude isn't a briefing, and Claude doesn't sign your logbook. You do.</p>
     </section>
 
     <div class="nav">
@@ -977,6 +976,13 @@ tr:last-child td{ border-bottom:0; }
     }
   }
 
+  // live Airports Visited map: (re)load when its scene is shown, so the tour starts fresh
+  function loadMap(sub) {
+    const f = sub.querySelector('#airportsFrame');
+    if (!f) return;
+    f.src = reduce ? f.dataset.src.replace(/&tour=[^&]*/, '') : f.dataset.src;
+  }
+
   async function playLogbook(sub, tok) {
     const you = sub.querySelector('.you');
     if (you) await typeInto(you, tok);
@@ -1024,7 +1030,7 @@ tr:last-child td{ border-bottom:0; }
     const tok = runToken;
     stopSpeech();
     if (el.classList.contains('scene')) playScene(el, tok);
-    else if (el.closest('.chap') === chaps[5]) playLogbook(el, tok);
+    else if (el.closest('.chap') && el.closest('.chap').dataset.title === 'Logbook') { playLogbook(el, tok); loadMap(el); }
     else if (el === chaps[2]) playTools(tok);
     if (voiceChk.checked) speakCurrent();
   }
