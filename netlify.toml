@@ -1,0 +1,4 @@
+# Claude + ForeFlight Primer — static site, no build step (App Conventions §1)
+[build]
+  publish = "site"
+  command = ""

@@ -1,0 +1,21 @@
+{
+  "checked": "2026-10-30",
+  "foreflight_eligibility": "Individual Starter, Essential or Premium; Business and MFB not supported; research preview",
+  "foreflight_sources": [
+    "https://support.foreflight.com/hc/en-us/articles/41093232648471-What-is-ForeFlight-AI-Connector",
+    "https://support.foreflight.com/hc/en-us/articles/41094144288151-Can-ForeFlight-AI-Connector-delete-data"
+  ],
+  "foreflight_mentions_claude_setup": false,
+  "claude_plan_for_directory_connectors": "unconfirmed",
+  "claude_connector_page": "https://claude.ai/customize/connectors/id/foreflight-mobile",
+  "claude_settings_path": "Settings > Connectors (listed as 'Web · Community', per Wayne's screenshot)",
+  "tool_count": 23,
+  "tools": {
+    "Logbook": ["list_logbook_entries","get_logbook_entry","summarize_logbook_entries","get_logbook_currency_status","create_logbook_draft_entry","update_logbook_draft_entry","delete_logbook_draft_entry"],
+    "Flight planning": ["list_flights","get_flight_plan","create_flight_plan","update_flight_plan","suggest_flight_routes","calculate_route_performance","compare_flight_altitudes","generate_flight_briefing"],
+    "Airports & weather": ["get_airport","get_aviation_weather","get_weather_forecast","list_airport_notams"],
+    "Aircraft": ["list_aircraft","get_weight_and_balance_profile"],
+    "Track logs": ["list_track_logs","get_track_log_details"]
+  },
+  "known_quirks": ["list_flights returns flight IDs only (no route/date), rechecked 30-Oct-2026"]
+}

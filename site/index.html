@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Claude + ForeFlight Primer</title>
+<meta name="description" content="Why and how to connect Claude to your ForeFlight account, with a real trip and a real logbook as examples.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#10141a;
+  --bg-panel:#1b222c;
+  --bezel:#2a323f;
+  --bezel-hi:#3a4454;
+  --amber:#f5a623;
+  --amber-dim:#7a5a1e;
+  --amber-glow:rgba(245,166,35,0.35);
+  --text-primary:#e7e4dc;
+  --text-muted:#8b93a1;
+  --teal:#3fa7a0;
+  --focus:#f5a623;
+  --alert:#e0705f;
+  /* app-specific tokens: FAA flight-category colors for the weather strip */
+  --cat-vfr:#3fb36b;
+  --cat-mvfr:#4d94f0;
+  --cat-ifr:#e0705f;
+  --cat-lifr:#c86fd0;
+}
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top, 0px);
+  padding-bottom:env(safe-area-inset-bottom, 0px);
+}
+*,*::before,*::after{ box-sizing:inherit; }
+html{
+  background:var(--bg-deep);
+  overscroll-behavior:none;
+  scroll-padding-top:env(safe-area-inset-top, 0px);
+  color-scheme:dark;
+}
+body{
+  margin:0;
+  min-height:100vh;
+  overscroll-behavior:none;
+  background:radial-gradient(ellipse at 50% 0%, #171d26 0%, var(--bg-deep) 60%);
+  font-family:'IBM Plex Sans', sans-serif;
+  color:var(--text-primary);
+  padding:14px 12px 40px;
+}
+.mono{ font-family:'IBM Plex Mono', monospace; }
+.rig{ width:100%; max-width:760px; margin:0 auto; }
+
+.btn{
+  font:500 13px 'IBM Plex Sans', sans-serif; padding:10px 16px; border-radius:6px;
+  border:1px solid var(--bezel-hi); background:transparent; color:var(--text-muted); cursor:pointer;
+  transition:color .15s ease, border-color .15s ease;
+}
+.btn:hover{ color:var(--amber); border-color:var(--amber); }
+.btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+.btn.primary{ color:var(--amber); border-color:var(--amber-dim); background:rgba(245,166,35,0.08); }
+.btn[disabled]{ opacity:.35; cursor:default; pointer-events:none; }
+
+.title-row{
+  display:flex; align-items:baseline; justify-content:space-between;
+  margin-bottom:2px; padding:0 4px;
+}
+.title-row h1{ font-size:19px; font-weight:600; margin:0; letter-spacing:0.01em; }
+.title-row .ver{ font-size:11px; color:var(--text-muted); }
+.purpose-line{
+  font-size:12.5px; color:var(--teal);
+  margin:4px 4px 10px; line-height:1.5;
+}
+.purpose-label{ color:var(--text-primary); }
+
+/* ---------- chapter rail ---------- */
+.rail{ display:flex; gap:4px; margin:0 0 10px; padding:0 2px; }
+.rail button{
+  flex:1 1 0; min-width:0; border:0; background:none; padding:6px 0 0; cursor:pointer;
+  color:var(--text-muted); font:500 10.5px 'IBM Plex Sans', sans-serif; text-align:left;
+}
+.rail button::before{
+  content:""; display:block; height:4px; border-radius:2px; background:var(--bezel); margin-bottom:5px;
+  transition:background .2s ease;
+}
+.rail button.done::before{ background:var(--amber-dim); }
+.rail button.on::before{ background:var(--amber); box-shadow:0 0 8px var(--amber-glow); }
+.rail button.on{ color:var(--amber); }
+.rail button span{ display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.rail button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; border-radius:3px; }
+@media (max-width:560px){ .rail button span{ display:none; } }
+
+/* ---------- panel + chapters ---------- */
+.panel{
+  background:var(--bg-panel); border:1px solid var(--bezel); border-radius:10px;
+  padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+.chap{ display:none; }
+.chap.on{ display:block; animation:chapIn .35s ease; }
+@keyframes chapIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:none; } }
+.chap-k{ font:500 11px 'IBM Plex Mono', monospace; color:var(--text-muted); letter-spacing:.08em; text-transform:uppercase; }
+.chap h2{ font-size:20px; font-weight:600; margin:2px 0 10px; text-wrap:balance; }
+.chap h3{ font-size:14.5px; font-weight:600; margin:0 0 8px; }
+p{ line-height:1.55; }
+.lead{ font-size:14.5px; color:var(--text-primary); margin:0 0 14px; }
+.small{ font-size:12px; color:var(--text-muted); }
+a{ color:var(--amber); }
+
+/* caption = narration text, always shown */
+.cap{
+  position:relative; margin:14px 0 0; padding:10px 12px 10px 34px;
+  border-left:2px solid var(--teal); background:rgba(63,167,160,.07); border-radius:0 6px 6px 0;
+  font-size:13.5px; line-height:1.55; color:var(--text-primary);
+}
+.cap::before{
+  content:""; position:absolute; left:11px; top:13px; width:13px; height:11px;
+  background:var(--teal);
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 22'%3E%3Cpath d='M2 7h5l7-6v20l-7-6H2z'/%3E%3Cpath d='M18 6c2 1.5 2 8.5 0 10M21 3c4 3 4 13 0 16' stroke='black' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+          mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 26 22'%3E%3Cpath d='M2 7h5l7-6v20l-7-6H2z'/%3E%3Cpath d='M18 6c2 1.5 2 8.5 0 10M21 3c4 3 4 13 0 16' stroke='black' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+.cap.speaking{ border-left-color:var(--amber); background:rgba(245,166,35,.07); }
+
+.stage{
+  background:#131920; border:1px solid var(--bezel); border-radius:8px; padding:12px;
+  overflow:hidden;
+}
+svg{ display:block; max-width:100%; height:auto; }
+.svg-t{ font-family:'IBM Plex Sans', sans-serif; fill:var(--text-primary); }
+.svg-m{ font-family:'IBM Plex Mono', monospace; fill:var(--text-muted); }
+
+/* nav row */
+.nav{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:14px; }
+.nav .mid{ display:flex; gap:8px; align-items:center; }
+.voice{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); cursor:pointer; user-select:none; }
+.voice input{ accent-color:var(--amber); }
+
+/* try-in-claude */
+.try{
+  display:inline-flex; align-items:center; gap:8px; margin-top:10px; padding:8px 12px;
+  border:1px solid var(--amber-dim); border-radius:6px; background:rgba(245,166,35,.06);
+  color:var(--amber); font-size:12.5px; text-decoration:none;
+}
+.try:hover{ border-color:var(--amber); }
+.try:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+.try svg{ width:14px; height:14px; }
+
+/* ---------- chapter 0: hero ---------- */
+.flow-dot{ fill:var(--amber); }
+.flow-back{ fill:var(--teal); }
+.pulse-line{ stroke-dasharray:5 6; animation:dash 1.2s linear infinite; }
+@keyframes dash{ to{ stroke-dashoffset:-22; } }
+
+/* ---------- chapter 1: cards ---------- */
+.cards{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+@media (max-width:640px){ .cards{ grid-template-columns:minmax(0,1fr); } }
+.card{
+  border:1px solid var(--bezel); border-radius:8px; background:#151b23; padding:10px;
+  cursor:pointer; text-align:left; color:inherit; font:inherit; display:flex; flex-direction:column; gap:8px;
+  transition:border-color .15s ease;
+}
+.card:hover{ border-color:var(--amber-dim); }
+.card:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+.card .mini{ background:#11161d; border-radius:6px; height:120px; display:flex; align-items:center; justify-content:center; }
+.card .mini svg{ height:110px; width:auto; }
+.card b{ font-size:13.5px; }
+.card span{ font-size:12.5px; color:var(--text-muted); line-height:1.45; }
+.card .go{ font-size:11.5px; color:var(--amber); margin-top:auto; }
+.aside{ margin:12px 0 0; font-size:12.5px; color:var(--text-muted); }
+
+.dotpop{ opacity:0; transform-box:fill-box; transform-origin:center; animation:dotpop 6s ease-in-out infinite; }
+@keyframes dotpop{ 0%{opacity:0; transform:scale(.2);} 6%{opacity:1; transform:scale(1.4);} 10%,85%{opacity:1; transform:scale(1);} 100%{opacity:0;} }
+.pindrop{ opacity:0; animation:pindrop 6s ease-out infinite; }
+@keyframes pindrop{ 0%{opacity:0; transform:translateY(-14px);} 8%,85%{opacity:1; transform:none;} 100%{opacity:0;} }
+.fly{ animation:fly 4.5s ease-in-out infinite; opacity:0; }
+@keyframes fly{ 0%{opacity:0; transform:translateX(70px);} 15%{opacity:1; transform:translateX(70px);} 45%,80%{opacity:1; transform:none;} 100%{opacity:0; transform:none;} }
+
+/* ---------- chapter 2: requirements ---------- */
+.req{ display:grid; gap:8px; }
+.req-row{ display:grid; grid-template-columns:28px minmax(0,1fr); gap:10px; padding:10px; border:1px solid var(--bezel); border-radius:8px; background:#151b23; }
+.req-row .ic{ width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font:600 13px 'IBM Plex Mono', monospace; }
+.ic.ok{ background:rgba(63,167,160,.15); color:var(--teal); }
+.ic.q{ background:rgba(245,166,35,.12); color:var(--amber); }
+.req-row b{ font-size:13.5px; }
+.req-row p{ margin:3px 0 0; font-size:12.8px; color:var(--text-primary); }
+.req-row .src{ font-size:11.5px; color:var(--text-muted); margin-top:4px; }
+.req-row .src a{ color:var(--text-muted); }
+
+.tools{ display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:8px; }
+.tgrp{ border:1px solid var(--bezel); border-radius:8px; background:#151b23; padding:9px 10px; }
+.tgrp h4{ margin:0 0 6px; font-size:12.5px; font-weight:600; display:flex; justify-content:space-between; }
+.tgrp h4 span{ font:500 11px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.tgrp ul{ margin:0; padding:0; list-style:none; }
+.tgrp li{ display:flex; justify-content:space-between; align-items:baseline; gap:6px; font:400 11.5px 'IBM Plex Mono', monospace; color:var(--text-primary); padding:2px 0; opacity:0; transform:translateX(-6px); transition:opacity .3s ease, transform .3s ease; overflow-wrap:anywhere; }
+.tgrp li.in{ opacity:1; transform:none; }
+.wbadge{ white-space:nowrap; flex:0 0 auto; font:600 9px 'IBM Plex Mono', monospace; color:var(--bg-deep); background:var(--amber); border-radius:3px; padding:1px 4px; margin-left:5px; vertical-align:1px; }
+
+/* ---------- sub-steppers (ch3, ch4, ch5) ---------- */
+.subs{ display:flex; gap:6px; flex-wrap:wrap; margin:0 0 10px; }
+.subs button{
+  font:500 12px 'IBM Plex Sans', sans-serif; padding:6px 11px; border-radius:16px; cursor:pointer;
+  border:1px solid var(--bezel-hi); background:transparent; color:var(--text-muted);
+}
+.subs button.on{ color:var(--bg-deep); background:var(--amber); border-color:var(--amber); }
+.subs button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
+.sub{ display:none; }
+.sub.on{ display:block; animation:chapIn .3s ease; }
+
+/* mock screens (ch3) */
+.mock-note{ font-size:11px; color:var(--text-muted); margin:6px 2px 0; }
+.ring{ fill:none; stroke:var(--amber); stroke-width:2.5; transform-box:fill-box; transform-origin:center; animation:ring 1.6s ease-out infinite; }
+@keyframes ring{ 0%{ opacity:1; transform:scale(.9);} 100%{ opacity:0; transform:scale(1.35);} }
+
+/* chat replay (ch4) */
+.chat{ display:flex; flex-direction:column; gap:10px; min-height:280px; }
+.you{
+  align-self:flex-end; max-width:86%; background:#2a3240; border-radius:12px 12px 2px 12px;
+  padding:9px 12px; font-size:13.5px; line-height:1.5; min-height:38px;
+}
+.you .caret{ display:inline-block; width:7px; height:15px; background:var(--amber); vertical-align:-2px; margin-left:2px; animation:blink 1s steps(1) infinite; }
+@keyframes blink{ 50%{ opacity:0; } }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.chip{
+  font:500 11px 'IBM Plex Mono', monospace; color:var(--teal); border:1px solid rgba(63,167,160,.45);
+  background:rgba(63,167,160,.08); border-radius:4px; padding:3px 7px; opacity:0; transform:translateY(4px);
+  transition:opacity .25s ease, transform .25s ease;
+}
+.chip.in{ opacity:1; transform:none; }
+.chip.other{ color:var(--text-muted); border-color:var(--bezel-hi); background:transparent; }
+.ans > *{ opacity:0; transform:translateY(6px); transition:opacity .4s ease, transform .4s ease; }
+.ans > .in{ opacity:1; transform:none; }
+.ans{ display:flex; flex-direction:column; gap:10px; }
+.replay{ font-size:12px; margin-top:10px; }
+.sub > div:has(> .replay){ display:inline-block; margin-right:8px; vertical-align:top; }
+
+.tbl-wrap{ overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--bezel); border-radius:6px; }
+table{ border-collapse:collapse; width:100%; font-size:12.5px; }
+th, td{ padding:7px 9px; text-align:left; border-bottom:1px solid var(--bezel); vertical-align:top; }
+th{ font:500 11px 'IBM Plex Mono', monospace; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; background:#151b23; white-space:nowrap; }
+td.num{ font-family:'IBM Plex Mono', monospace; white-space:nowrap; }
+tr:last-child td{ border-bottom:0; }
+
+.stat-row{ display:flex; gap:10px; flex-wrap:wrap; }
+.stat{ flex:1 1 140px; border:1px solid var(--bezel); border-radius:8px; padding:10px 12px; background:#151b23; }
+.stat .v{ font:600 22px 'IBM Plex Mono', monospace; color:var(--text-primary); }
+.stat .l{ font-size:12px; color:var(--text-muted); margin-top:2px; }
+.flag{
+  border:1px solid rgba(224,112,95,.45); background:rgba(224,112,95,.07); border-radius:8px; padding:9px 12px;
+  font-size:12.8px; line-height:1.5;
+}
+.flag b{ color:var(--alert); font-weight:600; }
+.note{
+  border:1px solid var(--amber-dim); background:rgba(245,166,35,.06); border-radius:8px; padding:9px 12px;
+  font-size:12.8px; line-height:1.5;
+}
+.note b{ color:var(--amber); font-weight:600; }
+
+/* weather strip */
+.wx{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:6px; }
+.wx-day{ font-size:11.5px; }
+.wx-day .d{ font:600 11.5px 'IBM Plex Mono', monospace; margin-bottom:4px; }
+.wx-bar{ display:flex; height:18px; border-radius:4px; overflow:hidden; gap:2px; background:#11161d; }
+.wx-bar i{ display:block; height:100%; transform-origin:left; animation:grow .6s ease both; }
+@keyframes grow{ from{ transform:scaleX(0);} to{ transform:none;} }
+.wx-day .t{ color:var(--text-muted); margin-top:5px; line-height:1.35; }
+.legend{ display:flex; flex-wrap:wrap; gap:12px; font-size:11.5px; color:var(--text-muted); }
+.legend span{ display:inline-flex; align-items:center; gap:5px; }
+.legend i{ width:10px; height:10px; border-radius:2px; display:inline-block; }
+@media (max-width:560px){ .wx{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+
+/* route + flight cards */
+.route-wrap{ display:grid; grid-template-columns:minmax(0,200px) minmax(0,1fr); gap:12px; align-items:start; }
+@media (max-width:560px){ .route-wrap{ grid-template-columns:minmax(0,1fr); } .route-wrap svg{ max-height:260px; margin:0 auto; } }
+.leg-path{ stroke-dasharray:400; stroke-dashoffset:400; }
+.ans .in .leg-path, .leg-path.drawn{ animation:draw 1.6s ease forwards; }
+@keyframes draw{ to{ stroke-dashoffset:0; } }
+.ff-box{ border:1px solid var(--bezel-hi); border-radius:8px; padding:8px; background:#11161d; }
+.ff-box .hdr{ font:500 11px 'IBM Plex Mono', monospace; color:var(--text-muted); margin:0 0 6px; }
+.fcard{
+  display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:4px 10px; align-items:baseline;
+  border:1px solid var(--bezel); border-left:3px solid var(--amber); border-radius:6px; padding:7px 10px; margin-top:6px;
+  font-size:12.5px; background:#171e27; opacity:0; transform:translateX(30px);
+}
+.fcard.in{ opacity:1; transform:none; transition:opacity .4s ease, transform .4s ease; }
+.fcard .n{ font:500 11px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.fcard .r{ font:600 13px 'IBM Plex Mono', monospace; }
+.fcard .a{ font:500 12px 'IBM Plex Mono', monospace; color:var(--text-muted); }
+.fcard .w{ grid-column:2 / 4; color:var(--text-muted); font-size:11.5px; }
+
+/* logbook chart */
+.chart-wrap{ position:relative; }
+.bar{ fill:var(--amber); transform-box:fill-box; transform-origin:bottom; }
+.bar.ytd{ fill:var(--amber-dim); }
+.play .bar{ animation:barup .7s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes barup{ from{ transform:scaleY(0);} to{ transform:none;} }
+.bar-hit{ fill:transparent; cursor:default; }
+.bar-hit:hover + .bar, .bar-hit:focus + .bar{ fill:#ffc35c; }
+.bar-hit:hover + .bar.ytd{ fill:#a8822f; }
+.tip{
+  position:absolute; pointer-events:none; background:#0d1116; border:1px solid var(--bezel-hi); border-radius:6px;
+  padding:6px 9px; font-size:12px; white-space:nowrap; opacity:0; transition:opacity .12s ease; transform:translate(-50%, -100%);
+}
+.tip.on{ opacity:1; }
+.tip b{ font-family:'IBM Plex Mono', monospace; }
+.gauges{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+@media (max-width:560px){ .gauges{ grid-template-columns:minmax(0,1fr); } }
+.gauge{ border:1px solid var(--bezel); border-radius:8px; padding:10px; background:#151b23; display:flex; gap:10px; align-items:center; }
+.gauge svg{ width:58px; height:58px; flex:0 0 58px; }
+.gauge .arc{ stroke:var(--teal); stroke-linecap:round; transition:stroke-dashoffset 1.1s ease; }
+.gauge b{ font-size:13px; display:block; }
+.gauge span{ font-size:12px; color:var(--text-muted); line-height:1.4; display:block; }
+.mapcard{ display:flex; gap:12px; align-items:center; border:1px solid var(--bezel); border-radius:8px; padding:10px; background:#151b23; text-decoration:none; color:inherit; }
+.mapcard:hover{ border-color:var(--amber-dim); }
+.mapcard svg{ flex:0 0 140px; width:140px; }
+
+/* chapter 6 */
+.habits{ display:grid; gap:8px; }
+.habit{ display:grid; grid-template-columns:30px minmax(0,1fr); gap:10px; padding:10px; border:1px solid var(--bezel); border-radius:8px; background:#151b23; }
+.habit svg{ width:26px; height:26px; color:var(--amber); }
+.habit b{ font-size:13.5px; }
+.habit p{ margin:3px 0 0; font-size:12.8px; }
+
+.fine{ font-size:11px; color:var(--text-muted); line-height:1.5; margin:12px 4px 0; }
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  .dotpop, .pindrop, .fly{ opacity:1; }
+}
+</style>
+<!-- GGP-FOOTER-CSS START v1.3 · 29-Oct-2026 · shared footer styles, App Conventions §5b · master: Control Panel repo tools/ggp-footer -->
+<style>
+.ggp-footer{
+  --ggp-amber:#f5a623; --ggp-muted:#8b93a1; --ggp-bezel:#2a323f; --ggp-bezel-hi:#3a4454;
+  box-sizing:border-box; width:100%; max-width:640px; margin:28px auto 0; padding:16px 0 8px;
+  border-top:1px solid var(--ggp-bezel); text-align:center;
+  font-family:'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size:11px; line-height:1.5; color:var(--ggp-muted);
+}
+.ggp-footer *, .ggp-footer *::before, .ggp-footer *::after{ box-sizing:border-box; }
+.ggp-footer .ggp-back{ margin:0 0 12px; }
+.ggp-footer .ggp-back a{
+  display:inline-block; padding:6px 14px; border:1px solid var(--ggp-bezel-hi); border-radius:5px;
+  background:var(--ggp-bezel); color:var(--ggp-amber); font-size:12px; font-weight:500; text-decoration:none;
+}
+.ggp-footer .ggp-back a:hover{ background:var(--ggp-bezel-hi); color:var(--ggp-amber); text-decoration:none; }
+.ggp-footer .ggp-extra{ margin:0 0 6px; text-wrap:balance; }
+.ggp-footer .ggp-credit{ margin:0; }
+.ggp-footer .ggp-extra a, .ggp-footer .ggp-credit a{
+  color:var(--ggp-muted); text-decoration:none; border-bottom:1px solid var(--ggp-bezel-hi); padding-bottom:1px;
+}
+.ggp-footer .ggp-extra a:hover, .ggp-footer .ggp-credit a:hover{ color:var(--ggp-amber); border-bottom-color:var(--ggp-amber); }
+.ggp-footer .ggp-count{ margin-top:6px; }
+.ggp-footer .ggp-count:empty{ display:none; }
+.ggp-footer .ggp-actions{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin-top:12px; }
+.ggp-footer .ggp-pill{
+  display:inline-flex; align-items:center; gap:7px; margin:0; padding:8px 16px;
+  border:1px solid var(--ggp-bezel-hi); border-radius:20px; background:transparent; color:var(--ggp-muted);
+  font:inherit; font-size:12.5px; line-height:1.2; cursor:pointer; transition:color .15s ease, border-color .15s ease;
+}
+.ggp-footer .ggp-pill:hover{ color:var(--ggp-amber); border-color:var(--ggp-amber); background:transparent; }
+.ggp-footer .ggp-pill svg{ width:15px; height:15px; flex-shrink:0; }
+.ggp-footer .ggp-pill span{ text-wrap:balance; }
+@media (max-width:400px){ .ggp-footer .ggp-pill{ font-size:12px; padding:8px 12px; gap:6px; } }
+.ggp-footer a:focus-visible, .ggp-footer .ggp-pill:focus-visible{ outline:2px solid var(--ggp-amber); outline-offset:2px; }
+@media print{
+  .ggp-footer .ggp-back, .ggp-footer .ggp-extra, .ggp-footer .ggp-count, .ggp-footer .ggp-actions{ display:none !important; }
+  .ggp-footer{ border-top:0; margin-top:8px; padding-top:0; }
+}
+</style>
+<!-- GGP-FOOTER-CSS END -->
+</head>
+<body>
+<div class="rig">
+  <div class="title-row">
+    <h1>Claude + ForeFlight Primer</h1>
+    <span class="ver mono">v0.1</span>
+  </div>
+  <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to do it, and what it looks like on a real trip and a real logbook.</p>
+
+  <nav class="rail" id="rail" aria-label="Chapters"></nav>
+
+  <div class="panel" id="panel">
+
+    <!-- ===================== 0 HERO ===================== -->
+    <section class="chap" data-title="Start" aria-label="Start">
+      <div class="chap-k">Chapter 0</div>
+      <h2>Why and how to connect Claude and ForeFlight</h2>
+      <div class="stage">
+        <svg viewBox="0 0 640 250" role="img" aria-label="ForeFlight data flowing through the connector to Claude, and a new flight flowing back">
+          <!-- tablet -->
+          <rect x="24" y="20" width="200" height="210" rx="16" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
+          <rect x="36" y="34" width="176" height="182" rx="6" fill="#11161d"/>
+          <text x="124" y="58" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">ForeFlight</text>
+          <g font-size="12">
+            <rect x="52" y="72" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="89" class="svg-t">Logbook</text>
+            <rect x="52" y="104" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="121" class="svg-t">Aircraft &amp; W&amp;B</text>
+            <rect x="52" y="136" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="153" class="svg-t">Saved flights</text>
+            <rect x="52" y="168" width="144" height="26" rx="5" fill="#222a35"/><text x="64" y="185" class="svg-t">Weather &amp; airports</text>
+          </g>
+          <!-- chat -->
+          <rect x="416" y="20" width="200" height="210" rx="12" fill="#1b222c" stroke="#3a4454" stroke-width="2"/>
+          <text x="516" y="48" text-anchor="middle" class="svg-t" font-size="14" font-weight="600">Claude</text>
+          <rect x="474" y="64" width="128" height="30" rx="10" fill="#2a3240"/>
+          <text x="484" y="83" class="svg-t" font-size="11">Am I IFR current?</text>
+          <rect x="430" y="104" width="150" height="44" rx="10" fill="#222a35"/>
+          <text x="440" y="122" class="svg-t" font-size="11">Yes: 17 approaches,</text>
+          <text x="440" y="138" class="svg-t" font-size="11">2 holds in the window.</text>
+          <rect x="474" y="158" width="128" height="30" rx="10" fill="#2a3240"/>
+          <text x="484" y="177" class="svg-t" font-size="11">Plan Oregon in FF</text>
+          <!-- connector -->
+          <path id="pathOut" d="M224 112 C300 92, 340 92, 416 112" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
+          <path id="pathBack" d="M416 150 C340 170, 300 170, 224 150" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
+          <text x="320" y="84" text-anchor="middle" class="svg-m" font-size="11">your data</text>
+          <text x="320" y="186" text-anchor="middle" class="svg-m" font-size="11">new flights</text>
+          <rect x="282" y="119" width="76" height="24" rx="12" fill="#10141a" stroke="#7a5a1e"/>
+          <text x="320" y="135" text-anchor="middle" class="svg-m" font-size="11" style="fill:var(--amber)">connector</text>
+          <g>
+            <circle r="5" class="flow-dot"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0s"><mpath href="#pathOut"/></animateMotion></circle>
+            <circle r="5" class="flow-dot"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.8s"><mpath href="#pathOut"/></animateMotion></circle>
+            <circle r="5" class="flow-dot"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.6s"><mpath href="#pathOut"/></animateMotion></circle>
+            <circle r="5" class="flow-back"><animateMotion dur="3.2s" repeatCount="indefinite" begin="0.4s"><mpath href="#pathBack"/></animateMotion></circle>
+          </g>
+        </svg>
+      </div>
+      <p class="cap" data-say>Your ForeFlight account already holds years of flying: your logbook, your aircraft, your saved flights. Connect it to Claude, and you can ask about all of it in plain English, and have Claude build flights right back into ForeFlight.</p>
+      <p class="small" style="margin:10px 2px 0">(ForeFlight's connector also works in ChatGPT. This primer covers Claude.)</p>
+    </section>
+
+    <!-- ===================== 1 WHY ===================== -->
+    <section class="chap" data-title="Why" aria-label="Why connect">
+      <div class="chap-k">Chapter 1</div>
+      <h2>Why connect</h2>
+      <div class="cards">
+        <button class="card" type="button" data-jump="5:2">
+          <div class="mini">
+            <svg viewBox="0 0 120 100" aria-hidden="true">
+              <path d="M10 14 L58 10 L70 30 L64 52 L78 70 L72 92 L52 80 L40 60 L24 48 L14 30 Z" fill="#1b222c" stroke="#3a4454"/>
+              <g fill="var(--amber)">
+                <circle class="dotpop" cx="30" cy="30" r="3" style="animation-delay:.1s"/>
+                <circle class="dotpop" cx="44" cy="22" r="3" style="animation-delay:.4s"/>
+                <circle class="dotpop" cx="36" cy="44" r="3" style="animation-delay:.7s"/>
+                <circle class="dotpop" cx="52" cy="38" r="3" style="animation-delay:1s"/>
+                <circle class="dotpop" cx="60" cy="58" r="3" style="animation-delay:1.3s"/>
+                <circle class="dotpop" cx="66" cy="76" r="3" style="animation-delay:1.6s"/>
+                <circle class="dotpop" cx="58" cy="86" r="3" style="animation-delay:1.9s"/>
+                <circle class="dotpop" cx="22" cy="20" r="3" style="animation-delay:2.2s"/>
+              </g>
+            </svg>
+          </div>
+          <b>Where you've been</b>
+          <span>Every departure, destination and route waypoint in your logbook, on one map.</span>
+          <span class="go">See the map →</span>
+        </button>
+        <button class="card" type="button" data-jump="4:1">
+          <div class="mini">
+            <svg viewBox="0 0 120 100" aria-hidden="true">
+              <path d="M44 4 C38 20, 42 34, 36 48 S 30 76, 34 96" fill="none" stroke="#4d94f0" stroke-width="2" opacity=".6"/>
+              <g font-family="IBM Plex Mono, monospace" font-size="8" fill="#8b93a1">
+                <g class="pindrop" style="animation-delay:.1s"><circle cx="48" cy="10" r="3.5" fill="var(--amber)"/><text x="56" y="13">KAST</text></g>
+                <g class="pindrop" style="animation-delay:.4s"><circle cx="46" cy="26" r="3.5" fill="var(--amber)"/><text x="54" y="29">KTMK</text></g>
+                <g class="pindrop" style="animation-delay:.7s"><circle cx="44" cy="42" r="3.5" fill="var(--amber)"/><text x="52" y="45">KONP</text></g>
+                <g class="pindrop" style="animation-delay:1s"><circle cx="42" cy="58" r="3.5" fill="var(--amber)"/><text x="50" y="61">6S2</text></g>
+                <g class="pindrop" style="animation-delay:1.3s"><circle cx="40" cy="74" r="3.5" fill="var(--amber)"/><text x="48" y="77">KOTH</text></g>
+                <g class="pindrop" style="animation-delay:1.6s"><circle cx="40" cy="90" r="3.5" fill="var(--amber)"/><text x="48" y="93">S05</text></g>
+              </g>
+            </svg>
+          </div>
+          <b>Trip research</b>
+          <span>Ask about a weekend on the Oregon coast. Claude pulls airports, fuel prices, pilot notes and the forecast trend.</span>
+          <span class="go">See the trip →</span>
+        </button>
+        <button class="card" type="button" data-jump="4:2">
+          <div class="mini">
+            <svg viewBox="0 0 120 100" aria-hidden="true">
+              <rect x="6" y="14" width="56" height="74" rx="8" fill="#1b222c" stroke="#3a4454"/>
+              <text x="34" y="28" text-anchor="middle" font-size="8" fill="#e7e4dc" font-family="IBM Plex Sans, sans-serif">ForeFlight</text>
+              <g class="fly" style="animation-delay:0s"><rect x="14" y="34" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
+              <g class="fly" style="animation-delay:.35s"><rect x="14" y="48" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
+              <g class="fly" style="animation-delay:.7s"><rect x="14" y="62" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
+              <g class="fly" style="animation-delay:1.05s"><rect x="14" y="76" width="40" height="10" rx="2" fill="#222a35" stroke="var(--amber)"/></g>
+              <rect x="74" y="30" width="40" height="40" rx="8" fill="#1b222c" stroke="#3a4454"/>
+              <text x="94" y="54" text-anchor="middle" font-size="8" fill="#e7e4dc" font-family="IBM Plex Sans, sans-serif">Claude</text>
+            </svg>
+          </div>
+          <b>Plans go back to ForeFlight</b>
+          <span>Like the plan? Claude creates the flights in ForeFlight, in your airplane, with your W&amp;B profile.</span>
+          <span class="go">See the flights →</span>
+        </button>
+      </div>
+      <p class="aside">Bonus: on the first test, Claude spotted cleanup items in my ForeFlight data, such as two airplanes saved twice.</p>
+      <p class="cap" data-say>Three reasons to connect. See everywhere your logbook has taken you. Research a trip in one conversation. And when you like the plan, have Claude put the flights straight into ForeFlight.</p>
+    </section>
+
+    <!-- ===================== 2 BEFORE YOU START ===================== -->
+    <section class="chap" data-title="Before you start" aria-label="Before you start">
+      <div class="chap-k">Chapter 2</div>
+      <h2>Before you start</h2>
+      <div class="req">
+        <div class="req-row">
+          <div class="ic ok" aria-hidden="true">✓</div>
+          <div>
+            <b>An individual ForeFlight plan</b>
+            <p>Starter, Essential or Premium. Business and MFB subscriptions aren't supported. ForeFlight calls the connector a research preview, so features can change.</p>
+            <div class="src">Source: <a href="https://support.foreflight.com/hc/en-us/articles/41093232648471-What-is-ForeFlight-AI-Connector" target="_blank" rel="noopener">ForeFlight Support, "What is ForeFlight AI Connector"</a>, read 30-Oct-2026</div>
+          </div>
+        </div>
+        <div class="req-row">
+          <div class="ic q" aria-hidden="true">?</div>
+          <div>
+            <b>A Claude account</b>
+            <p>Claude on the web or the desktop app. Which Claude plans include directory connectors is being confirmed; this line will be updated.</p>
+            <div class="src">To be confirmed on Anthropic's help pages</div>
+          </div>
+        </div>
+        <div class="req-row">
+          <div class="ic ok" aria-hidden="true">✓</div>
+          <div>
+            <b>Know what it can change</b>
+            <p>It can create and edit flights and create, edit or remove draft logbook entries. It can't delete flights, aircraft or approved logbook entries.</p>
+            <div class="src">Source: <a href="https://support.foreflight.com/hc/en-us/articles/41094144288151-Can-ForeFlight-AI-Connector-delete-data" target="_blank" rel="noopener">ForeFlight Support, "Can ForeFlight AI Connector delete data"</a>, read 30-Oct-2026</div>
+          </div>
+        </div>
+      </div>
+      <h3 style="margin:16px 0 8px">What Claude can reach: <span class="mono" style="color:var(--amber)">23</span> tools in 5 groups</h3>
+      <div class="tools" id="toolMap"></div>
+      <p class="small" style="margin:6px 0 0"><span class="wbadge">WRITE</span> changes data in ForeFlight; everything else only reads. Tool list as Claude saw it on 30-Oct-2026.</p>
+      <p class="cap" data-say>You'll need an individual ForeFlight plan, Starter, Essential or Premium, and a Claude account. The connector is a ForeFlight preview, so expect it to grow and change.</p>
+    </section>
+
+    <!-- ===================== 3 CONNECT ===================== -->
+    <section class="chap" data-title="Connect" aria-label="Connect">
+      <div class="chap-k">Chapter 3</div>
+      <h2>Connect, in five steps</h2>
+      <div class="subs" role="tablist" aria-label="Steps"></div>
+
+      <div class="sub" data-label="1 · Find it">
+        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the Connectors page with ForeFlight Mobile listed">
+          <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
+          <rect x="0" y="0" width="130" height="250" fill="#11161d"/>
+          <g class="svg-m" font-size="11"><text x="16" y="26" font-size="10">Settings</text><text x="16" y="50">General</text><text x="16" y="72">Account</text><text x="16" y="94">Privacy</text><text x="16" y="116">Capabilities</text><text x="16" y="138" style="fill:var(--amber)">Connectors</text></g>
+          <text x="152" y="34" class="svg-t" font-size="15" font-weight="600">Connectors</text>
+          <rect x="256" y="20" width="118" height="22" rx="5" fill="#222a35"/><text x="268" y="35" class="svg-m" font-size="11">Yours</text><text x="312" y="35" class="svg-m" font-size="11">Discover</text>
+          <rect x="152" y="52" width="290" height="28" rx="6" fill="#222a35"/><text x="164" y="70" class="svg-m" font-size="12">Search: foreflight</text>
+          <rect x="152" y="92" width="420" height="44" rx="8" fill="#1b222c" stroke="#3a4454"/>
+          <rect x="164" y="102" width="24" height="24" rx="5" fill="#2a3240"/>
+          <text x="198" y="118" class="svg-t" font-size="13" font-weight="600">ForeFlight Mobile</text>
+          <text x="440" y="118" class="svg-m" font-size="10.5">Web · Community</text>
+          <rect class="ring" x="148" y="88" width="428" height="52" rx="10"/>
+          <rect x="152" y="148" width="420" height="44" rx="8" fill="#171d26" opacity=".6"/>
+          <rect x="152" y="200" width="420" height="44" rx="8" fill="#171d26" opacity=".35"/>
+        </svg></div>
+        <p class="mock-note">Illustration; real screenshot to come.</p>
+        <p class="cap" data-say>In Claude, open Settings, then Connectors, and search for ForeFlight Mobile. Or use the direct link below.</p>
+        <a class="try" href="https://claude.ai/customize/connectors/id/foreflight-mobile" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>Open the ForeFlight connector in Claude</a>
+      </div>
+
+      <div class="sub" data-label="2 · Connect">
+        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the ForeFlight Mobile connector page with a Connect button">
+          <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
+          <rect x="40" y="36" width="44" height="44" rx="8" fill="#2a3240"/>
+          <text x="100" y="56" class="svg-t" font-size="17" font-weight="600">ForeFlight Mobile</text>
+          <text x="100" y="76" class="svg-m" font-size="11.5">Your ForeFlight data in Claude</text>
+          <rect x="460" y="40" width="100" height="34" rx="7" fill="var(--amber)"/>
+          <text x="510" y="62" text-anchor="middle" font-size="13" font-weight="600" fill="#10141a" font-family="IBM Plex Sans, sans-serif">Connect</text>
+          <rect class="ring" x="454" y="34" width="112" height="46" rx="10"/>
+          <g fill="#222a35"><rect x="40" y="110" width="520" height="10" rx="3"/><rect x="40" y="130" width="470" height="10" rx="3"/><rect x="40" y="150" width="500" height="10" rx="3"/><rect x="40" y="170" width="300" height="10" rx="3"/></g>
+        </svg></div>
+        <p class="mock-note">Illustration; real screenshot to come.</p>
+        <p class="cap" data-say>Tap Connect. Claude hands you over to ForeFlight to sign in.</p>
+      </div>
+
+      <div class="sub" data-label="3 · Sign in">
+        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: ForeFlight sign-in and approval screen">
+          <rect x="0" y="0" width="600" height="250" rx="8" fill="#0d1116"/>
+          <rect x="170" y="16" width="260" height="218" rx="12" fill="#1b222c" stroke="#3a4454"/>
+          <text x="300" y="48" text-anchor="middle" class="svg-t" font-size="15" font-weight="600">Sign in to ForeFlight</text>
+          <rect x="194" y="64" width="212" height="28" rx="6" fill="#11161d" stroke="#3a4454"/><text x="204" y="82" class="svg-m" font-size="11">email</text>
+          <rect x="194" y="100" width="212" height="28" rx="6" fill="#11161d" stroke="#3a4454"/><text x="204" y="118" class="svg-m" font-size="11">••••••••</text>
+          <text x="300" y="150" text-anchor="middle" class="svg-m" font-size="10.5">Allow Claude to access your ForeFlight data?</text>
+          <rect x="226" y="164" width="148" height="34" rx="7" fill="var(--amber)"/>
+          <text x="300" y="186" text-anchor="middle" font-size="13" font-weight="600" fill="#10141a" font-family="IBM Plex Sans, sans-serif">Approve</text>
+          <rect class="ring" x="220" y="158" width="160" height="46" rx="10"/>
+        </svg></div>
+        <p class="mock-note">Illustration; real screenshot to come. ForeFlight's exact wording may differ.</p>
+        <p class="cap" data-say>Sign in with your ForeFlight account and approve. Your password goes to ForeFlight, never to Claude.</p>
+      </div>
+
+      <div class="sub" data-label="4 · Turn it on">
+        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: the tools menu in a chat with ForeFlight Mobile switched on">
+          <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
+          <rect x="40" y="186" width="520" height="46" rx="12" fill="#1b222c" stroke="#3a4454"/>
+          <circle cx="66" cy="209" r="13" fill="#2a3240"/><text x="66" y="214" text-anchor="middle" class="svg-t" font-size="16">+</text>
+          <text x="90" y="214" class="svg-m" font-size="12">Ask anything…</text>
+          <rect x="44" y="50" width="250" height="126" rx="10" fill="#1b222c" stroke="#3a4454"/>
+          <text x="60" y="76" class="svg-m" font-size="11">Connectors</text>
+          <text x="60" y="104" class="svg-t" font-size="13">ForeFlight Mobile</text>
+          <rect x="234" y="92" width="38" height="20" rx="10" fill="var(--teal)"/><circle cx="262" cy="102" r="7" fill="#e7e4dc"/>
+          <rect class="ring" x="228" y="86" width="50" height="32" rx="14"/>
+          <text x="60" y="134" class="svg-t" font-size="13" opacity=".5">Web search</text>
+          <rect x="234" y="122" width="38" height="20" rx="10" fill="#3a4454"/><circle cx="244" cy="132" r="7" fill="#8b93a1"/>
+          <text x="60" y="162" class="svg-t" font-size="13" opacity=".5">PlaneWX</text>
+        </svg></div>
+        <p class="mock-note">Illustration; real screenshot to come.</p>
+        <p class="cap" data-say>In any chat, open the plus or tools menu and make sure ForeFlight Mobile is switched on.</p>
+      </div>
+
+      <div class="sub" data-label="5 · Test it">
+        <div class="stage"><svg viewBox="0 0 600 250" aria-label="Illustration: first test prompt and Claude's reply">
+          <rect x="0" y="0" width="600" height="250" rx="8" fill="#151b23"/>
+          <rect x="300" y="24" width="270" height="34" rx="12" fill="#2a3240"/>
+          <text x="314" y="46" class="svg-t" font-size="12.5">Let's try the connection to ForeFlight.</text>
+          <rect x="30" y="72" width="170" height="20" rx="4" fill="none" stroke="rgba(63,167,160,.5)"/>
+          <text x="40" y="86" font-size="10.5" font-family="IBM Plex Mono, monospace" fill="var(--teal)">ForeFlight · list_aircraft</text>
+          <rect x="30" y="102" width="400" height="120" rx="12" fill="#1b222c"/>
+          <text x="46" y="128" class="svg-t" font-size="12.5">The ForeFlight connection is live.</text>
+          <text x="46" y="152" class="svg-t" font-size="12.5">44 saved aircraft; N211WP (DA40 XLS) is primary.</text>
+          <text x="46" y="176" class="svg-t" font-size="12.5">Two airplanes appear twice: N211WP, N451RK.</text>
+          <text x="46" y="200" class="svg-m" font-size="11">Want to try a currency check next?</text>
+        </svg></div>
+        <p class="mock-note">Reply trimmed from my first test, 13-Oct-2026.</p>
+        <p class="cap" data-say>Ask Claude to try the connection. It should come back with your aircraft. If it does, you're connected.</p>
+        <a class="try" data-prompt="Let's try the connection to ForeFlight." target="_blank" rel="noopener"></a>
+      </div>
+    </section>
+
+    <!-- ===================== 4 ONE TRIP ===================== -->
+    <section class="chap" data-title="One trip" aria-label="One trip, start to finish">
+      <div class="chap-k">Chapter 4</div>
+      <h2>One trip, start to finish</h2>
+      <p class="small" style="margin:-4px 0 10px">A replay of my real chat from 13-Oct-2026, trimmed. KSBA to the Oregon coast in N211WP.</p>
+      <div class="subs" role="tablist" aria-label="Scenes"></div>
+
+      <!-- Scene 1 -->
+      <div class="sub scene" data-label="1 · Check">
+        <div class="stage chat">
+          <div class="you" data-type="Let's try the connection to ForeFlight."></div>
+          <div class="chips"><span class="chip">ForeFlight · list_aircraft</span><span class="chip">ForeFlight · list_flights</span></div>
+          <div class="ans">
+            <div class="stat-row">
+              <div class="stat"><div class="v">44</div><div class="l">saved aircraft</div></div>
+              <div class="stat"><div class="v">N211WP</div><div class="l">primary · DA40 XLS · KSBA</div></div>
+            </div>
+            <div class="flag"><b>Worth cleaning up:</b> N211WP and N451RK are each saved twice, with different weights and W&amp;B profiles. Easy to plan in the wrong one.</div>
+          </div>
+        </div>
+        <p class="cap" data-say>First, a quick check. Claude found my 44 saved aircraft, and flagged two airplanes that were in there twice. That's a cleanup I'd never have spotted.</p>
+        <div><button class="btn replay" type="button">↻ Replay scene</button></div>
+      </div>
+
+      <!-- Scene 2 -->
+      <div class="sub scene" data-label="2 · Research">
+        <div class="stage chat">
+          <div class="you" data-type="I'm thinking about a weekend trip to the Pacific coast of Oregon sometime in the next few weeks. What do things look like in terms of airports and possible weather?"></div>
+          <div class="chips"><span class="chip">ForeFlight · get_airport ×6</span><span class="chip">ForeFlight · weather forecast</span><span class="chip">ForeFlight · aviation weather</span></div>
+          <div class="ans">
+            <div class="tbl-wrap"><table>
+              <thead><tr><th>Airport</th><th>Longest rwy</th><th>100LL</th><th>From pilot reports</th></tr></thead>
+              <tbody>
+                <tr><td class="num">KAST</td><td class="num">5,794×100</td><td class="num">$6.49</td><td>Crew car</td></tr>
+                <tr><td class="num">KTMK</td><td class="num">5,001×75</td><td class="num">$7.00</td><td>Two loaner cars; avoid north transient tie-downs</td></tr>
+                <tr><td class="num">KONP</td><td class="num">5,398×100</td><td class="num">$7.99</td><td>Crew car; FBO may close early</td></tr>
+                <tr><td class="num">6S2</td><td class="num">3,000×60</td><td class="num">$7.20</td><td>Call ahead for courtesy car; bumpy in north wind</td></tr>
+                <tr><td class="num">KOTH</td><td class="num">5,980×150</td><td class="num">$8.00</td><td>Reports of high landing fees</td></tr>
+                <tr><td class="num">S05</td><td class="num">3,601×60</td><td class="num">$6.80</td><td>Shifting winds</td></tr>
+              </tbody>
+            </table></div>
+            <div>
+              <div class="wx" id="wxStrip"></div>
+              <div class="legend" style="margin-top:8px">
+                <span><i style="background:var(--cat-vfr)"></i>VFR</span>
+                <span><i style="background:var(--cat-mvfr)"></i>MVFR</span>
+                <span><i style="background:var(--cat-ifr)"></i>IFR</span>
+                <span><i style="background:var(--cat-lifr)"></i>LIFR</span>
+              </div>
+              <p class="small" style="margin:6px 0 0">KONP trend as Claude described it from ForeFlight's 10-day model outlook and the NWS Portland discussion, 13-Oct-2026. A trend, not a TAF; bands are approximate.</p>
+            </div>
+          </div>
+        </div>
+        <p class="cap" data-say>Claude pulled runway, fuel price and pilot notes for six coast airports, then the forecast trend. Good Thursday and Friday morning, stratus Friday afternoon, and rain by Sunday night.</p>
+        <div><button class="btn replay" type="button">↻ Replay scene</button></div>
+        <a class="try" data-prompt="I'm thinking about a weekend trip to [destination] in the next few weeks. Using ForeFlight, what do the airports and the weather look like?" target="_blank" rel="noopener"></a>
+      </div>
+
+      <!-- Scene 3 -->
+      <div class="sub scene" data-label="3 · Plan">
+        <div class="stage chat">
+          <div class="you" data-type="Yes, pls."></div>
+          <div class="chips"><span class="chip other">PlaneWX · departure windows</span><span class="chip">ForeFlight · create_flight_plan ×4</span></div>
+          <div class="ans">
+            <p class="small" style="margin:0">PlaneWX (a separate connector) scored Friday 09:00 out WX Score 95, Favorable, data confidence 80, Good. Then Claude built the trip in ForeFlight:</p>
+            <div class="route-wrap">
+              <svg viewBox="0 0 230 350" aria-label="Route KSBA to KRDD to KONP">
+                <polyline points="42,5 37,48 32,80 36,118 29,161 52,202 90,231 109,264 141,302 155,322 180,323 218,334" fill="none" stroke="#4d94f0" stroke-width="1.5" opacity=".45"/>
+                <text x="8" y="344" class="svg-m" font-size="9">coastline approximate</text>
+                <path class="leg-path" d="M175 322 L97 158 L42 48" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <g font-family="IBM Plex Mono, monospace" font-size="11">
+                  <circle cx="175" cy="322" r="5" fill="var(--amber)"/><text x="186" y="318" fill="#e7e4dc">KSBA</text>
+                  <circle cx="97" cy="158" r="5" fill="#10141a" stroke="var(--amber)" stroke-width="2"/><text x="107" y="162" fill="#e7e4dc">KRDD</text><text x="107" y="175" fill="#8b93a1" font-size="9">fuel stop</text>
+                  <circle cx="42" cy="48" r="5" fill="var(--amber)"/><text x="52" y="52" fill="#e7e4dc">KONP</text>
+                </g>
+              </svg>
+              <div class="ff-box">
+                <div class="hdr">ForeFlight · Flights · N211WP · WAM 1WP W&amp;B</div>
+                <div class="fcard"><span class="n">1/4</span><span class="r">KSBA–KRDD</span><span class="a">8,500</span><span class="w">Fri 16-Oct 09:00</span></div>
+                <div class="fcard"><span class="n">2/4</span><span class="r">KRDD–KONP</span><span class="a">8,500</span><span class="w">Fri 16-Oct 12:45</span></div>
+                <div class="fcard"><span class="n">3/4</span><span class="r">KONP–KRDD</span><span class="a">9,500</span><span class="w">Sun 18-Oct 08:00</span></div>
+                <div class="fcard"><span class="n">4/4</span><span class="r">KRDD–KSBA</span><span class="a">7,500</span><span class="w">Sun 18-Oct 10:45</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="cap" data-say>I also had Claude score departure windows with another connector, PlaneWX. Friday morning won. Then I said yes, please, and four flights showed up in ForeFlight, in my airplane, with my weight and balance profile.</p>
+        <div><button class="btn replay" type="button">↻ Replay scene</button></div>
+        <a class="try" data-prompt="Create this trip in ForeFlight: my primary aircraft, VFR, with a fuel stop near the midpoint. Out [day and time], back [day and time]." target="_blank" rel="noopener"></a>
+      </div>
+
+      <!-- Scene 4 -->
+      <div class="sub scene" data-label="4 · Verify">
+        <div class="stage chat">
+          <div class="you" data-type="(Claude flagged these on its own.)"></div>
+          <div class="ans">
+            <div class="note"><b>Sources disagreed.</b> PlaneWX graded a 200–900 ft ceiling at KONP Thursday from one MOS run; ForeFlight's MOS showed FEW/SCT clouds, not a ceiling, and its daily outlook showed sunny. Claude said to re-brief once a TAF covered Thursday.</div>
+            <div class="note"><b>Tight timing.</b> With the KRDD fuel stop, arrival at KONP would be about 14:45–15:00 Friday, right when the hourly model brought in stratus near 300 ft. Claude offered to move both Friday legs earlier.</div>
+          </div>
+        </div>
+        <p class="cap" data-say>The best part: Claude told me where its sources disagreed, and that my Friday arrival was cutting it close. It's a research partner, not a briefing. I'm still pilot in command.</p>
+        <div><button class="btn replay" type="button">↻ Replay scene</button></div>
+      </div>
+    </section>
+
+    <!-- ===================== 5 LOGBOOK ===================== -->
+    <section class="chap" data-title="Logbook" aria-label="Your logbook">
+      <div class="chap-k">Chapter 5</div>
+      <h2>Your logbook, in a question</h2>
+      <div class="subs" role="tablist" aria-label="Scenes"></div>
+
+      <div class="sub" data-label="A · Totals">
+        <div class="stage">
+          <div class="you" style="margin:0 0 12px auto; width:fit-content" data-type="Summarize my logbook by year: total hours, cross-country, and approaches."></div>
+          <div class="stat-row" style="margin-bottom:10px">
+            <div class="stat"><div class="v" data-count="3791.8" data-dec="1">0</div><div class="l">total hours, 2013–2026</div></div>
+            <div class="stat"><div class="v" data-count="1145">0</div><div class="l">logbook entries</div></div>
+            <div class="stat"><div class="v" data-count="722">0</div><div class="l">approaches</div></div>
+          </div>
+          <div class="chart-wrap" id="hoursChart"></div>
+          <p class="small" style="margin:6px 0 0">Total hours per year. 2026 is through 30-Oct. Source: my ForeFlight logbook through the connector, 30-Oct-2026.</p>
+        </div>
+        <p class="cap" data-say>Thirteen years of logbook, summarized in one question.</p>
+        <a class="try" data-prompt="Summarize my ForeFlight logbook by year: total hours, cross-country hours and approaches." target="_blank" rel="noopener"></a>
+      </div>
+
+      <div class="sub" data-label="B · Currency">
+        <div class="stage">
+          <div class="you" style="margin:0 0 12px auto; width:fit-content" data-type="Am I current?"></div>
+          <div class="gauges">
+            <div class="gauge" data-frac="1"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="none" stroke="#2a323f" stroke-width="6"/><circle class="arc" cx="30" cy="30" r="24" fill="none" stroke-width="6" transform="rotate(-90 30 30)"/></svg>
+              <div><b>IFR</b><span>17 approaches (6 needed), 2 holds (1 needed). Current through 31-Jan-2027.</span></div></div>
+            <div class="gauge" data-frac="1"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="none" stroke="#2a323f" stroke-width="6"/><circle class="arc" cx="30" cy="30" r="24" fill="none" stroke-width="6" transform="rotate(-90 30 30)"/></svg>
+              <div><b>Takeoffs &amp; landings, ASEL</b><span>16 of each (3 needed). Current through 07-Jan-2027.</span></div></div>
+            <div class="gauge" data-frac="1"><svg viewBox="0 0 60 60" aria-hidden="true"><circle cx="30" cy="30" r="24" fill="none" stroke="#2a323f" stroke-width="6"/><circle class="arc" cx="30" cy="30" r="24" fill="none" stroke-width="6" transform="rotate(-90 30 30)"/></svg>
+              <div><b>Flight review</b><span>Current through 31-Oct-2028.</span></div></div>
+          </div>
+          <p class="small" style="margin:8px 0 0">From ForeFlight's own currency trackers through the connector, 30-Oct-2026.</p>
+        </div>
+        <p class="cap" data-say>Claude reads the same currency trackers ForeFlight does, and can tell you exactly how many approaches you have to spare.</p>
+        <a class="try" data-prompt="Am I current? Check my ForeFlight logbook currencies." target="_blank" rel="noopener"></a>
+      </div>
+
+      <div class="sub" data-label="C · Map">
+        <div class="stage">
+          <a class="mapcard" href="https://geezer-geek-pilot-control-panel.netlify.app/airports/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 140 110" aria-hidden="true">
+              <path d="M14 10 L70 6 L84 30 L78 56 L96 78 L88 104 L62 92 L48 68 L28 54 L16 34 Z" fill="#1b222c" stroke="#3a4454"/>
+              <g fill="var(--amber)">
+                <circle class="dotpop" cx="36" cy="30" r="3" style="animation-delay:.1s"/><circle class="dotpop" cx="52" cy="22" r="3" style="animation-delay:.35s"/>
+                <circle class="dotpop" cx="44" cy="46" r="3" style="animation-delay:.6s"/><circle class="dotpop" cx="62" cy="40" r="3" style="animation-delay:.85s"/>
+                <circle class="dotpop" cx="70" cy="62" r="3" style="animation-delay:1.1s"/><circle class="dotpop" cx="80" cy="82" r="3" style="animation-delay:1.35s"/>
+                <circle class="dotpop" cx="72" cy="96" r="3" style="animation-delay:1.6s"/><circle class="dotpop" cx="26" cy="20" r="3" style="animation-delay:1.85s"/>
+                <circle class="dotpop" cx="58" cy="54" r="3" style="animation-delay:2.1s"/>
+              </g>
+            </svg>
+            <div><b style="font-size:14px">Airports Visited</b><p class="small" style="margin:4px 0 0">Every airport in my ForeFlight logbook (departures, destinations and route waypoints), built by Claude from the connector. Opens the live map.</p></div>
+          </a>
+        </div>
+        <p class="cap" data-say>I asked Claude for every airport in my logbook, departures, destinations and route waypoints, and it built this map.</p>
+      </div>
+    </section>
+
+    <!-- ===================== 6 HABITS ===================== -->
+    <section class="chap" data-title="Good habits" aria-label="Good habits and limits">
+      <div class="chap-k">Chapter 6</div>
+      <h2>Good habits and limits</h2>
+      <div class="habits">
+        <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6z"/><path d="m9 12 2 2 4-4"/></svg>
+          <div><b>Verify before you fly</b><p>ForeFlight's support pages warn that AI can make mistakes, and say to confirm weather, NOTAMs, airport data and performance in the ForeFlight app and official sources. You're still pilot in command.</p></div></div>
+        <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M4 20 20 4"/></svg>
+          <div><b>Writes are limited, and drafts wait for you</b><p>The connector can create and edit flights and work with draft logbook entries. It can't delete flights, aircraft or approved entries, and a draft becomes part of your logbook only when you approve it in ForeFlight.</p></div></div>
+        <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/><path d="M11 8v3"/><circle cx="11" cy="14" r=".5" fill="currentColor"/></svg>
+          <div><b>Watch the numbers</b><p>Answers are only as good as the logbook. Mine shows 214.5 PIC hours in 2023 against 209.0 total hours, a data-entry slip Claude reports as is. Check totals that look off.</p></div></div>
+        <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h12"/><path d="m12 6 6 6-6 6"/><path d="M20 4v16"/></svg>
+          <div><b>Your data leaves ForeFlight</b><p>Connected data is sent to the AI provider to produce answers. ForeFlight's connector terms say so; worth reading once.</p></div></div>
+        <div class="habit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          <div><b>It's a preview</b><p>Tools change. This page is rechecked monthly; the date below shows the last check.</p></div></div>
+      </div>
+      <p class="cap" data-say>Use it like a sharp copilot doing the research. It's fast, and it's usually right. But it's not a briefing, and it doesn't sign the logbook. You do.</p>
+    </section>
+
+    <div class="nav">
+      <button class="btn" id="prevBtn" type="button">← Back</button>
+      <div class="mid">
+        <label class="voice" id="voiceWrap" title="Preview voice: your browser's built-in speech"><input type="checkbox" id="voiceChk"> Read aloud</label>
+      </div>
+      <button class="btn primary" id="nextBtn" type="button">Next →</button>
+    </div>
+  </div>
+
+  <p class="fine">Process last checked <span class="mono" id="lastChecked" data-checked="2026-10-30">30-Oct-2026</span>. Examples use the author's real ForeFlight data and a real Claude chat from 13-Oct-2026, trimmed. Not affiliated with ForeFlight or Anthropic. Not for flight; verify everything with official sources.</p>
+
+  <!-- GGP-FOOTER START v1.3 · 29-Oct-2026 · shared footer, App Conventions §5a · master: Control Panel repo tools/ggp-footer -->
+<footer class="ggp-footer">
+  <div class="ggp-back"><a href="https://geezer-geek-pilot-control-panel.netlify.app/">&larr; Back to GeezerGeek Pilot Apps</a></div>
+  <div class="ggp-credit">Wayne McClelland (<a href="https://geezer-geek-pilot-control-panel.netlify.app/airports/" target="_blank" rel="noopener">airports visited</a>), <a href="https://youtube.com/@GeezerGeekPilot" target="_blank" rel="noopener">GeezerGeek Pilot</a>, <a href="https://docs.google.com/document/d/1chfDa3JBCjsGykGjwrAFwOqMAS7d3_dIY9ieROLCIyU/preview" target="_blank" rel="noopener">Reference Materials</a></div>
+  <div class="ggp-actions">
+    <button class="ggp-pill ggp-share" type="button"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.5" x2="15.4" y2="6.5"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/></svg><span>Share GeezerGeek Pilot Apps with pilot friends</span></button>
+  </div>
+</footer>
+<!-- GGP-FOOTER END -->
+</div>
+
+<script>
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const chaps = [...document.querySelectorAll('.chap')];
+  const rail = document.getElementById('rail');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const voiceChk = document.getElementById('voiceChk');
+  let ci = 0;
+  let runToken = 0;
+
+  // ---- Try-in-Claude links (claude.ai/new?q=, App Conventions §7) ----
+  const TRY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>';
+  document.querySelectorAll('a.try[data-prompt]').forEach(a => {
+    a.href = 'https://claude.ai/new?q=' + encodeURIComponent(a.dataset.prompt);
+    a.innerHTML = TRY_ICON + 'Try this in Claude';
+  });
+
+  // ---- tool map (chapter 2): the connector's 23 tools as listed to Claude on 30-Oct-2026 ----
+  const TOOLS = [
+    ['Logbook', ['list_logbook_entries','get_logbook_entry','summarize_logbook_entries','get_logbook_currency_status',
+                 'create_logbook_draft_entry*','update_logbook_draft_entry*','delete_logbook_draft_entry*']],
+    ['Flight planning', ['list_flights','get_flight_plan','create_flight_plan*','update_flight_plan*','suggest_flight_routes',
+                         'calculate_route_performance','compare_flight_altitudes','generate_flight_briefing']],
+    ['Airports & weather', ['get_airport','get_aviation_weather','get_weather_forecast','list_airport_notams']],
+    ['Aircraft', ['list_aircraft','get_weight_and_balance_profile']],
+    ['Track logs', ['list_track_logs','get_track_log_details']],
+  ];
+  const toolMap = document.getElementById('toolMap');
+  toolMap.innerHTML = TOOLS.map(([g, list]) => '<div class="tgrp"><h4>' + g.replace('&', '&amp;') + '<span>' + list.length + '</span></h4><ul>' +
+    list.map(t => '<li><span>' + t.replace('*', '') + '</span>' + (t.endsWith('*') ? '<span class="wbadge">WRITE</span>' : '') + '</li>').join('') + '</ul></div>').join('');
+  async function playTools(tok) {
+    const lis = [...toolMap.querySelectorAll('li')];
+    lis.forEach(li => li.classList.remove('in'));
+    for (const li of lis) { if (!alive(tok)) return; await sleep(45); li.classList.add('in'); }
+  }
+
+  // ---- weather strip (scene 2) ----
+  const C = { V:'var(--cat-vfr)', M:'var(--cat-mvfr)', I:'var(--cat-ifr)', L:'var(--cat-lifr)' };
+  const WX = [
+    { d:'Thu 15', seg:[['V',1]], t:'Best day; sun, offshore flow, bumps over terrain' },
+    { d:'Fri 16', seg:[['V',.55],['L',.45]], t:'VFR into early afternoon; stratus ~300–400 ft from ~15:00' },
+    { d:'Sat 17', seg:[['L',.25],['M',.2],['V',.55]], t:'Low IFR AM, lifting late morning; gusty NNW PM' },
+    { d:'Sun 18', seg:[['V',.7],['M',.3]], t:'Daytime workable; rain moves in evening' },
+    { d:'Mon 19', seg:[['M',1]], t:'Showers, ~75%' },
+  ];
+  const wxEl = document.getElementById('wxStrip');
+  const drawWx = () => {
+    wxEl.innerHTML = WX.map((w, i) => '<div class="wx-day"><div class="d">' + w.d + '</div><div class="wx-bar">' +
+      w.seg.map(s => '<i style="flex:' + s[1] + ';background:' + C[s[0]] + ';animation-delay:' + (i * .15) + 's"></i>').join('') +
+      '</div><div class="t">' + w.t + '</div></div>').join('');
+  };
+
+  // ---- hours chart (chapter 5A) — one series, no legend ----
+  const HOURS = [[2013,147.2],[2014,214.0],[2015,312.9],[2016,271.4],[2017,411.3],[2018,420.4],[2019,393.9],
+                 [2020,233.6],[2021,293.1],[2022,261.9],[2023,209.0],[2024,263.7],[2025,190.3],[2026,169.1]];
+  const chartEl = document.getElementById('hoursChart');
+  const drawChart = () => {
+    const W = 700, H = 230, L = 40, B = 24, T = 10, max = 450;
+    const bw = (W - L) / HOURS.length;
+    let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Total hours per year, 2013 to 2026">';
+    [0, 100, 200, 300, 400].forEach(v => {
+      const y = H - B - (v / max) * (H - B - T);
+      s += '<line x1="' + L + '" x2="' + W + '" y1="' + y + '" y2="' + y + '" stroke="#2a323f" stroke-width="1"/>' +
+           '<text x="' + (L - 6) + '" y="' + (y + 4) + '" text-anchor="end" class="svg-m" font-size="11">' + v + '</text>';
+    });
+    HOURS.forEach(([yr, h], i) => {
+      const bh = (h / max) * (H - B - T), x = L + i * bw + 2, w = bw - 4, y = H - B - bh;
+      const ytd = yr === 2026;
+      s += '<rect class="bar-hit" x="' + (L + i * bw) + '" y="' + T + '" width="' + bw + '" height="' + (H - B - T) + '" data-yr="' + yr + '" data-h="' + h + '" tabindex="0"/>';
+      s += '<path class="bar' + (ytd ? ' ytd' : '') + '" style="animation-delay:' + (i * 0.05) + 's" d="M' + x + ' ' + (H - B) + 'V' + (y + 4) + 'q0 -4 4 -4h' + (w - 8) + 'q4 0 4 4V' + (H - B) + 'Z"/>';
+      s += '<text x="' + (x + w / 2) + '" y="' + (H - 7) + '" text-anchor="middle" class="svg-m" font-size="11">’' + String(yr).slice(2) + '</text>';
+    });
+    s += '<line x1="' + L + '" x2="' + W + '" y1="' + (H - B) + '" y2="' + (H - B) + '" stroke="#3a4454"/></svg><div class="tip" id="hoursTip"></div>';
+    chartEl.innerHTML = s;
+    const tip = document.getElementById('hoursTip');
+    const show = (el) => {
+      const r = el.getBoundingClientRect(), pr = chartEl.getBoundingClientRect();
+      const yr = el.dataset.yr;
+      tip.innerHTML = yr + (yr === '2026' ? ' (to 30-Oct)' : '') + ': <b>' + Number(el.dataset.h).toFixed(1) + ' h</b>';
+      tip.style.left = (r.left - pr.left + r.width / 2) + 'px';
+      tip.style.top = (el.nextSibling.getBoundingClientRect().top - pr.top - 6) + 'px';
+      tip.classList.add('on');
+    };
+    chartEl.querySelectorAll('.bar-hit').forEach(el => {
+      el.addEventListener('mouseenter', () => show(el));
+      el.addEventListener('focus', () => show(el));
+      el.addEventListener('mouseleave', () => tip.classList.remove('on'));
+      el.addEventListener('blur', () => tip.classList.remove('on'));
+    });
+  };
+  drawChart();
+
+  // ---- helpers ----
+  const sleep = (ms) => new Promise(r => setTimeout(r, reduce ? 0 : ms));
+  const alive = (tok) => tok === runToken;
+
+  async function typeInto(el, tok) {
+    const text = el.dataset.type || '';
+    if (reduce) { el.textContent = text; return; }
+    el.innerHTML = '<span></span><i class="caret"></i>';
+    const span = el.firstChild;
+    const step = Math.max(8, Math.min(28, 1400 / text.length));
+    for (let i = 1; i <= text.length; i++) {
+      if (!alive(tok)) return;
+      span.textContent = text.slice(0, i);
+      await sleep(step);
+    }
+    await sleep(250);
+    if (alive(tok)) el.textContent = text;
+  }
+
+  function countUp(el, tok) {
+    const target = parseFloat(el.dataset.count), dec = parseInt(el.dataset.dec || '0', 10);
+    const fmt = (v) => v.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    if (reduce) { el.textContent = fmt(target); return; }
+    const t0 = performance.now(), dur = 1100;
+    const tick = (now) => {
+      if (!alive(tok)) return;
+      const p = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * e);
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  async function playScene(sc, tok) {
+    sc.querySelectorAll('.chip').forEach(c => c.classList.remove('in'));
+    const ans = sc.querySelector('.ans');
+    if (ans) [...ans.children].forEach(c => c.classList.remove('in'));
+    sc.querySelectorAll('.fcard').forEach(c => c.classList.remove('in'));
+    sc.querySelectorAll('.leg-path').forEach(p => { p.classList.remove('drawn'); void p.getBoundingClientRect(); });
+    if (sc.querySelector('#wxStrip')) wxEl.innerHTML = '';
+    const you = sc.querySelector('.you');
+    if (you) { you.textContent = ''; await sleep(300); await typeInto(you, tok); }
+    for (const c of sc.querySelectorAll('.chip')) { if (!alive(tok)) return; await sleep(350); c.classList.add('in'); }
+    await sleep(450);
+    if (!ans) return;
+    for (const c of ans.children) {
+      if (!alive(tok)) return;
+      if (c.contains(wxEl)) drawWx();
+      c.classList.add('in');
+      c.querySelectorAll('.leg-path').forEach(p => p.classList.add('drawn'));
+      const cards = c.querySelectorAll('.fcard');
+      if (cards.length) { await sleep(900); for (const f of cards) { if (!alive(tok)) return; f.classList.add('in'); await sleep(320); } }
+      await sleep(450);
+    }
+  }
+
+  async function playLogbook(sub, tok) {
+    const you = sub.querySelector('.you');
+    if (you) await typeInto(you, tok);
+    sub.querySelectorAll('[data-count]').forEach(el => countUp(el, tok));
+    if (sub.contains(chartEl)) {
+      chartEl.classList.remove('play'); void chartEl.offsetWidth; chartEl.classList.add('play');
+    }
+    sub.querySelectorAll('.gauge').forEach(g => {
+      const arc = g.querySelector('.arc'), len = 2 * Math.PI * 24;
+      arc.style.transition = 'none';
+      arc.style.strokeDasharray = len; arc.style.strokeDashoffset = len;
+      void arc.getBoundingClientRect();
+      arc.style.transition = '';
+      arc.style.strokeDashoffset = len * (1 - parseFloat(g.dataset.frac));
+    });
+  }
+
+  // ---- sub-steppers ----
+  const subState = new Map();
+  chaps.forEach(ch => {
+    const subs = [...ch.querySelectorAll(':scope > .sub')];
+    if (!subs.length) return;
+    const bar = ch.querySelector('.subs');
+    subs.forEach((s, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = s.dataset.label; b.setAttribute('role', 'tab');
+      b.addEventListener('click', () => showSub(ch, i));
+      bar.appendChild(b);
+    });
+    subState.set(ch, 0);
+  });
+
+  function showSub(ch, i) {
+    const subs = [...ch.querySelectorAll(':scope > .sub')];
+    const bar = [...ch.querySelectorAll('.subs button')];
+    subState.set(ch, i);
+    subs.forEach((s, k) => s.classList.toggle('on', k === i));
+    bar.forEach((b, k) => { b.classList.toggle('on', k === i); b.setAttribute('aria-selected', k === i); });
+    run(subs[i]);
+    updateNav();
+  }
+
+  function run(el) {
+    runToken++;
+    const tok = runToken;
+    stopSpeech();
+    if (el.classList.contains('scene')) playScene(el, tok);
+    else if (el.closest('.chap') === chaps[5]) playLogbook(el, tok);
+    else if (el === chaps[2]) playTools(tok);
+    if (voiceChk.checked) speakCurrent();
+  }
+
+  // ---- chapters ----
+  chaps.forEach((ch, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.innerHTML = '<span>' + ch.dataset.title + '</span>';
+    b.setAttribute('aria-label', 'Chapter ' + i + ': ' + ch.dataset.title);
+    b.addEventListener('click', () => showChap(i));
+    rail.appendChild(b);
+  });
+
+  function showChap(i, sub) {
+    ci = Math.max(0, Math.min(chaps.length - 1, i));
+    chaps.forEach((c, k) => c.classList.toggle('on', k === ci));
+    [...rail.children].forEach((b, k) => { b.classList.toggle('on', k === ci); b.classList.toggle('done', k < ci); });
+    const ch = chaps[ci];
+    if (subState.has(ch)) showSub(ch, sub != null ? sub : subState.get(ch));
+    else { run(ch); updateNav(); }
+    try { history.replaceState(null, '', '#ch' + ci + (subState.has(ch) ? '-' + subState.get(ch) : '')); } catch (e) {}
+  }
+
+  function updateNav() {
+    const ch = chaps[ci];
+    const hasSub = subState.has(ch), si = hasSub ? subState.get(ch) : 0;
+    const nSub = hasSub ? ch.querySelectorAll(':scope > .sub').length : 1;
+    prevBtn.disabled = ci === 0 && si === 0;
+    nextBtn.disabled = ci === chaps.length - 1 && si === nSub - 1;
+    try { history.replaceState(null, '', '#ch' + ci + (hasSub ? '-' + si : '')); } catch (e) {}
+  }
+
+  function step(dir) {
+    const ch = chaps[ci];
+    if (subState.has(ch)) {
+      const n = ch.querySelectorAll(':scope > .sub').length, si = subState.get(ch) + dir;
+      if (si >= 0 && si < n) { showSub(ch, si); return; }
+    }
+    const ni = ci + dir;
+    if (ni < 0 || ni >= chaps.length) return;
+    const nch = chaps[ni];
+    if (subState.has(nch)) subState.set(nch, dir > 0 ? 0 : nch.querySelectorAll(':scope > .sub').length - 1);
+    showChap(ni);
+    document.getElementById('panel').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+  }
+  prevBtn.addEventListener('click', () => step(-1));
+  nextBtn.addEventListener('click', () => step(1));
+  document.addEventListener('keydown', (e) => {
+    if (e.target.closest && e.target.closest('input, textarea, select')) return;
+    if (e.key === 'ArrowRight') step(1);
+    if (e.key === 'ArrowLeft') step(-1);
+  });
+  // swipe (ignore swipes that start inside a horizontally scrolling table)
+  let sx = null, sy = null;
+  const panel = document.getElementById('panel');
+  panel.addEventListener('touchstart', (e) => {
+    if (e.target.closest('.tbl-wrap')) { sx = null; return; }
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, { passive: true });
+  panel.addEventListener('touchend', (e) => {
+    if (sx == null) return;
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+    sx = null;
+  }, { passive: true });
+
+  document.querySelectorAll('.replay').forEach(b => b.addEventListener('click', () => run(b.closest('.sub'))));
+  document.querySelectorAll('[data-jump]').forEach(b => b.addEventListener('click', () => {
+    const [c, s] = b.dataset.jump.split(':').map(Number);
+    showChap(c, s);
+    panel.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  }));
+
+  // ---- narration: captions always on; "Read aloud" is a preview using the browser's own voice ----
+  const synth = window.speechSynthesis;
+  if (!synth) document.getElementById('voiceWrap').style.display = 'none';
+  function currentCap() {
+    const ch = chaps[ci];
+    const scope = subState.has(ch) ? ch.querySelectorAll(':scope > .sub')[subState.get(ch)] : ch;
+    return scope.querySelector('.cap');
+  }
+  function stopSpeech() {
+    if (!synth) return;
+    synth.cancel();
+    document.querySelectorAll('.cap.speaking').forEach(c => c.classList.remove('speaking'));
+  }
+  function speakCurrent() {
+    if (!synth) return;
+    const cap = currentCap();
+    if (!cap) return;
+    const u = new SpeechSynthesisUtterance(cap.textContent);
+    u.rate = 1.0;
+    u.onend = () => cap.classList.remove('speaking');
+    cap.classList.add('speaking');
+    synth.speak(u);
+  }
+  voiceChk.addEventListener('change', () => { if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
+
+  // SVG SMIL animations: pause under reduced motion
+  if (reduce) document.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });
+
+  // ---- start (deep link #chN or #chN-M) ----
+  const m = /^#ch(\d+)(?:-(\d+))?$/.exec(location.hash);
+  showChap(m ? +m[1] : 0, m && m[2] != null ? +m[2] : undefined);
+})();
+
+// ---- open counter (App-Conventions §6b; Tally, fails silently) ----
+fetch('https://tally.yuki.sh/hits/wamware/claude-foreflight-primer.json')
+  .then(r => r.json())
+  .then(d => {
+    const el = document.getElementById('hitCounter');
+    const n = d && d.visit;
+    if (el && typeof n === 'number') el.textContent = 'Opened ' + n.toLocaleString() + (n === 1 ? ' time' : ' times');
+  })
+  .catch(() => { /* counter is a nice-to-have, never block the app */ });
+</script>
+<!-- GGP-FOOTER-JS START v1.3 · 29-Oct-2026 · shared footer script, App Conventions §6a/§6b · master: Control Panel repo tools/ggp-footer -->
+<script>
+(() => {
+  if (window.__ggpFooter) return;
+  window.__ggpFooter = true;
+  // Every app's footer share button shares the Control Panel, not the app itself.
+  const SHARE_URL   = 'https://geezer-geek-pilot-control-panel.netlify.app/';
+  const SHARE_TITLE = 'GeezerGeek Pilot Apps';
+  const SHARE_TEXT  = 'Planning, weather, ATC-practice and safety tools for GA pilots, from GeezerGeek Pilot.';
+  const flash = (btn) => {
+    if (btn.dataset.ggpBusy) return;
+    btn.dataset.ggpBusy = '1';
+    const label = btn.querySelector('span') || btn;
+    const original = label.textContent;
+    label.textContent = label === btn ? 'Link copied!' : 'Link copied to clipboard!';
+    setTimeout(() => { label.textContent = original; delete btn.dataset.ggpBusy; }, 2200);
+  };
+  // One listener on the document, so it also covers footers an app draws later and any other
+  // button given the ggp-share class.
+  document.addEventListener('click', async (ev) => {
+    const btn = ev.target instanceof Element ? ev.target.closest('.ggp-share') : null;
+    if (!btn) return;
+    ev.preventDefault();
+    if (navigator.share) {
+      try { await navigator.share({ title: SHARE_TITLE, text: SHARE_TEXT, url: SHARE_URL }); return; }
+      catch (err) { if (err && err.name === 'AbortError') return; /* else fall through */ }
+    }
+    try {
+      await navigator.clipboard.writeText(SHARE_URL);
+      flash(btn);
+    } catch (err) {
+      window.location.href = 'mailto:?subject=' + encodeURIComponent(SHARE_TITLE)
+        + '&body=' + encodeURIComponent(SHARE_TEXT + ' ' + SHARE_URL);
+    }
+  });
+  // Open counter: shown only where the footer has #ggpCount (the Control Panel). Apps count silently.
+  const countEl = document.getElementById('ggpCount');
+  if (countEl) {
+    fetch('https://tally.yuki.sh/hits/wamware/geezer-geek-pilot-control-panel.json')
+      .then(r => r.json())
+      .then(d => {
+        const base = parseInt(countEl.dataset.base, 10) || 0;  // pre-Tally opens, App Conventions §6b
+        const n = d && typeof d.visit === 'number' ? d.visit + base : null;
+        if (typeof n === 'number') countEl.textContent = 'Opened ' + n.toLocaleString() + (n === 1 ? ' time' : ' times');
+      })
+      .catch(() => { /* counter is a nice-to-have, never block the app */ });
+  }
+})();
+</script>
+<!-- GGP-FOOTER-JS END -->
+</body>
+</html>
