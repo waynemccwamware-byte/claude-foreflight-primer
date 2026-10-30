@@ -215,6 +215,9 @@ svg{ display:block; max-width:100%; height:auto; }
 .shot img{ display:block; width:100%; height:auto; border-radius:6px; border:1px solid var(--bezel-hi); }
 .shot .co{ position:absolute; border:2.5px solid var(--amber); border-radius:8px; pointer-events:none; animation:co 1.6s ease-in-out infinite; }
 @keyframes co{ 0%,100%{ box-shadow:0 0 0 0 rgba(245,166,35,.55);} 50%{ box-shadow:0 0 0 6px rgba(245,166,35,0);} }
+.shot-in{ position:relative; }
+.shot .co.red{ border:4px solid #ff4a3d; border-radius:6px; animation:cored 1.6s ease-in-out infinite; }
+@keyframes cored{ 0%,100%{ box-shadow:0 0 0 0 rgba(255,74,61,.6);} 50%{ box-shadow:0 0 0 7px rgba(255,74,61,0);} }
 .shot figcaption{ font-size:11.5px; color:var(--text-muted); margin-top:6px; }
 
 /* where a step happens */
@@ -224,6 +227,8 @@ svg{ display:block; max-width:100%; height:auto; }
 .where.ff{ color:#7fb6ff; border:1px solid rgba(77,148,240,.5); background:rgba(77,148,240,.08); }
 .ways{ margin:0 0 10px; padding-left:20px; font-size:13px; line-height:1.55; }
 .ways b{ color:var(--amber); font-weight:600; }
+.ways1{ margin:0 0 10px; font-size:13.5px; line-height:1.55; }
+.ways1 b{ font-weight:600; }
 .shot .cn{ position:absolute; width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%; background:var(--amber); color:#10141a;
   font:700 11px 'IBM Plex Mono', monospace; display:flex; align-items:center; justify-content:center; box-shadow:0 0 0 2px #10141a; }
 
@@ -337,6 +342,42 @@ tr:last-child td{ border-bottom:0; }
 #airportsFrame{ display:block; width:100%; height:600px; border:0; border-radius:8px; background:#0d1116; }
 @media (max-width:560px){ #airportsFrame{ height:540px; } }
 
+/* trip scene 4: stay / eat / see */
+.trio{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+@media (max-width:640px){ .trio{ grid-template-columns:minmax(0,1fr); } }
+.tcol{ border:1px solid var(--bezel); border-radius:8px; background:#151b23; padding:10px; }
+.tcol h4{ display:flex; align-items:center; gap:7px; margin:0 0 8px; font-size:13px; font-weight:600; color:var(--amber); }
+.tcol h4 svg{ width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.titem{ padding:6px 0; border-top:1px solid var(--bezel); opacity:0; transform:translateY(6px); transition:opacity .35s ease, transform .35s ease; }
+.titem.in{ opacity:1; transform:none; }
+.titem b{ display:block; font-size:12.8px; font-weight:600; }
+.titem span{ display:block; font-size:11.8px; color:var(--text-muted); margin-top:1px; }
+
+/* chapter 7: wrap-up */
+.wrap{ position:relative; padding:18px 16px 14px; }
+.wrap-bg{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.ledger{ position:relative; display:grid; gap:8px; }
+.lrow{ display:grid; grid-template-columns:minmax(0,1fr) 22px minmax(0,1.1fr); align-items:center; gap:8px; opacity:0; transform:translateX(-14px); transition:opacity .45s ease, transform .45s ease; }
+.lrow.in{ opacity:1; transform:none; }
+.lyou{ background:#2a3240; border-radius:10px 10px 2px 10px; padding:8px 10px; font-size:12.5px; line-height:1.45; }
+.lyou em{ display:block; font-style:normal; font:500 10.5px 'IBM Plex Mono', monospace; color:var(--text-muted); margin-top:3px; }
+.larrow{ color:var(--amber); font-size:18px; text-align:center; }
+.lgot{ border:1px solid var(--bezel); background:rgba(21,27,35,.92); border-radius:10px; padding:8px 10px; font-size:12.8px; line-height:1.45; }
+.lgot b{ font:600 20px 'IBM Plex Mono', monospace; color:var(--amber); margin-right:6px; }
+@media (max-width:560px){ .lrow{ grid-template-columns:minmax(0,1fr); } .larrow{ transform:rotate(90deg); line-height:1; } }
+.wrap-tiles{ position:relative; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-top:16px; }
+.wt{ border:1px solid var(--bezel); border-radius:10px; background:rgba(21,27,35,.92); padding:12px; text-align:center; opacity:0; transform:scale(.92); transition:opacity .4s ease, transform .4s ease; }
+.wt.in{ opacity:1; transform:none; }
+.wt .v{ font:600 30px 'IBM Plex Mono', monospace; }
+.wt .l{ font-size:12px; color:var(--text-muted); margin-top:2px; }
+.wt.hot{ border-color:var(--amber-dim); box-shadow:0 0 22px rgba(245,166,35,.18); }
+.wt.hot .v{ color:var(--amber); }
+.wrap-line{ position:relative; text-align:center; font-size:22px; font-weight:600; margin:18px 0 4px; opacity:0; transition:opacity .8s ease; }
+.wrap-line.in{ opacity:1; }
+.wrap-line span{ color:var(--amber); text-shadow:0 0 18px rgba(245,166,35,.45); }
+.wrap-cta{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.wrap-cta a.btn{ text-decoration:none; }
+
 /* chapter 6 */
 .habits{ display:grid; gap:8px; }
 .habit{ display:grid; grid-template-columns:30px minmax(0,1fr); gap:10px; padding:10px; border:1px solid var(--bezel); border-radius:8px; background:#151b23; }
@@ -397,7 +438,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.7</span>
+    <span class="ver mono">v0.8</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -435,7 +476,7 @@ tr:last-child td{ border-bottom:0; }
           <!-- connector: data flows right to left, new flights left to right -->
           <path id="pathOut" d="M416 112 C340 92, 300 92, 224 112" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
           <path id="pathBack" d="M224 150 C300 170, 340 170, 416 150" fill="none" stroke="#3a4454" stroke-width="2" class="pulse-line"/>
-          <text x="320" y="84" text-anchor="middle" class="svg-m" font-size="11">your data</text>
+          <text x="320" y="84" text-anchor="middle" class="svg-m" font-size="11">your flights &amp; data</text>
           <text x="320" y="186" text-anchor="middle" class="svg-m" font-size="11">new flights</text>
           <rect x="282" y="119" width="76" height="24" rx="12" fill="#10141a" stroke="#7a5a1e"/>
           <text x="320" y="135" text-anchor="middle" class="svg-m" font-size="11" style="fill:var(--amber)">connector</text>
@@ -560,20 +601,16 @@ tr:last-child td{ border-bottom:0; }
 
       <div class="sub" data-label="1 · Find ForeFlight">
         <div class="where cl">In Claude</div>
-        <ol class="ways">
-          <li><b>Quickest:</b> in any Claude chat, tap <span class="mono">+</span> → Connectors → Manage connectors.</li>
-          <li><b>Or in Settings:</b> Connectors is at the very bottom of the left column, under Customize (①).</li>
-        </ol>
+        <p class="ways1">In any Claude chat, tap <span class="mono">+</span> → <b>Connectors</b> → <b>Manage connectors</b>. Then find ForeFlight Mobile on the Discover tab.</p>
         <div class="stage">
           <figure class="shot">
             <img src="media/claude-connectors.webp" width="1400" height="1094" alt="Claude Settings, Connectors page, with ForeFlight Mobile listed and connected" loading="lazy">
-            <span class="co" style="left:1.4%; top:91.5%; width:18%; height:4.5%"></span><span class="cn" style="left:20.8%; top:91.6%">1</span>
-            <span class="co" style="left:42.2%; top:7.2%; width:8.6%; height:4.2%"></span><span class="cn" style="left:51.6%; top:7.4%">2</span>
-            <span class="co" style="left:21.3%; top:22.9%; width:78%; height:6.1%"></span><span class="cn" style="left:21.4%; top:23%">3</span>
+                        <span class="co" style="left:42.2%; top:7.2%; width:8.6%; height:4.2%"></span><span class="cn" style="left:51.6%; top:7.4%">1</span>
+            <span class="co" style="left:21.3%; top:22.9%; width:78%; height:6.1%"></span><span class="cn" style="left:21.4%; top:23%">2</span>
           </figure>
-          <p class="mock-note">① Connectors, under Customize · ② the Discover tab, where ForeFlight Mobile is listed before you connect · ③ ForeFlight Mobile, shown here on my Yours tab after connecting. My screen, 30-Oct-2026.</p>
+          <p class="mock-note">① the Discover tab, where ForeFlight Mobile is listed before you connect · ② ForeFlight Mobile, shown here on my Yours tab after connecting. My Connectors page, 30-Oct-2026.</p>
         </div>
-        <p class="cap" data-say>In Claude, open Connectors. The quickest way is from any chat: tap plus, then Connectors, then Manage connectors. In Settings, Connectors is at the very bottom, under Customize. Then find ForeFlight Mobile on the Discover tab.</p>
+        <p class="cap" data-say>In any Claude chat, tap plus, then Connectors, then Manage connectors. Then find ForeFlight Mobile on the Discover tab.</p>
         <a class="try" href="https://claude.ai/customize/connectors/id/foreflight-mobile" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg>Open the ForeFlight connector in Claude</a>
       </div>
 
@@ -665,7 +702,7 @@ tr:last-child td{ border-bottom:0; }
             <div class="stat"><div class="v" data-count="722">0</div><div class="l">approaches</div></div>
           </div>
           <div class="chart-wrap" id="hoursChart"></div>
-          <p class="small" style="margin:6px 0 0">Total hours per year; 2026 is through 30-Oct. Figures lightly fictionalized for this page; the shape comes from my ForeFlight logbook via the connector, 30-Oct-2026.</p>
+          <p class="small" style="margin:6px 0 0">Total hours per year; 2026 is through 30-Oct.</p>
         </div>
         <p class="cap" data-say>Fourteen years of logbook, summarized by Claude from one question.</p>
         <a class="try" data-prompt="Summarize my ForeFlight logbook by year: total hours, cross-country hours and approaches." target="_blank" rel="noopener"></a>
@@ -764,9 +801,9 @@ tr:last-child td{ border-bottom:0; }
                 <div class="fcard"><span class="n">4/4</span><span class="r">KRDD–KSBA</span><span class="a">7,500</span><span class="w">Sun 18-Oct 10:45</span></div>
               </div>
             </div>
-            <figure class="shot">
+            <figure class="shot"><div class="shot-in">
               <img src="media/foreflight-flights.webp" width="1400" height="919" alt="ForeFlight Flights list on an iPad showing the four N211WP legs Claude created, with the KSBA to KRDD leg on the map" loading="lazy">
-              <span class="co" style="left:0.4%; top:19.6%; width:32.6%; height:48.6%"></span>
+              <span class="co red" style="left:0.3%; top:20.2%; width:32.8%; height:47.6%"></span></div>
               <figcaption>The same four flights in ForeFlight on my iPad, 13-Oct-2026. Screenshot of ForeFlight Mobile.</figcaption>
             </figure>
           </div>
@@ -776,8 +813,46 @@ tr:last-child td{ border-bottom:0; }
         <a class="try" data-prompt="Create this trip in ForeFlight: my primary aircraft, VFR, with a fuel stop near the midpoint. Out [day and time], back [day and time]." target="_blank" rel="noopener"></a>
       </div>
 
-      <!-- Scene 4 -->
-      <div class="sub scene" data-label="4 · Verify">
+      <!-- Scene 4: stay, eat, see -->
+      <div class="sub scene" data-label="4 · Stay &amp; eat">
+        <div class="stage chat">
+          <div class="you" data-type="For the overnights in KONP, pls find 3 possible AirBnBs, a couple eateries for lunch/dinner, and maybe some sights to see or things to do."></div>
+          <div class="chips"><span class="chip other">Places search</span><span class="chip other">Web search</span></div>
+          <div class="ans">
+            <div class="trio">
+              <div class="tcol">
+                <h4><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11 12 4l9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-5h4v5"/></svg>Stay</h4>
+                <div class="titem"><b>Oceanfront 2-bedroom condo</b><span>Nye Beach · private deck, sleeps 6</span></div>
+                <div class="titem"><b>Oceanfront studio</b><span>Nye Beach · covered deck, shared pool</span></div>
+                <div class="titem"><b>Top-floor corner 1-bedroom</b><span>Nye Beach · self check-in for a late arrival</span></div>
+              </div>
+              <div class="tcol">
+                <h4><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v8a2 2 0 0 0 2 2v8"/><path d="M11 3v6"/><path d="M5 3v6"/><path d="M17 21V3c-2 1-3 4-3 7h3"/></svg>Eat</h4>
+                <div class="titem"><b>Local Ocean Seafoods</b><span>Bayfront dinner, ask for a bay view</span></div>
+                <div class="titem"><b>Clearwater Restaurant</b><span>Windows over the sea-lion docks</span></div>
+                <div class="titem"><b>Sharks Seafood Bar</b><span>Small, family-run; cioppino</span></div>
+                <div class="titem"><b>Sal De Mar</b><span>Counter-service fish tacos for lunch</span></div>
+                <div class="titem"><b>Shay's Marina View Cafe</b><span>Breakfast before the Sunday departure</span></div>
+              </div>
+              <div class="tcol">
+                <h4><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 21h4"/><path d="M9 21 10 8h4l1 13"/><path d="M8 8h8l-1-3H9z"/><path d="M12 5V3"/><path d="M4 7l3 1M20 7l-3 1"/></svg>See</h4>
+                <div class="titem"><b>Yaquina Head Lighthouse</b><span>Oregon's tallest light; tide pools</span></div>
+                <div class="titem"><b>Historic Bayfront</b><span>Working waterfront and sea lions</span></div>
+                <div class="titem"><b>Oregon Coast Aquarium</b><span>Good fallback for a foggy morning</span></div>
+                <div class="titem"><b>Yaquina Bay Lighthouse</b><span>Historic keeper's house</span></div>
+                <div class="titem"><b>Devils Punchbowl</b><span>15 minutes north; go at low tide</span></div>
+              </div>
+            </div>
+            <p class="small" style="margin:0">Claude also fit the plan to the forecast: the aquarium and Bayfront for a foggy Saturday morning, the headlands once it clears. Listing details trimmed; check availability and hours yourself.</p>
+          </div>
+        </div>
+        <p class="cap" data-say>Then the fun part. One more sentence, and Claude came back with three places to stay, five places to eat, and five things to see in Newport, arranged around the forecast.</p>
+        <div><button class="btn replay" type="button">↻ Replay scene</button></div>
+        <a class="try" data-prompt="For an overnight near [airport], find 3 places to stay, a couple of places for lunch and dinner, and a few things to see." target="_blank" rel="noopener"></a>
+      </div>
+
+      <!-- Scene 5 -->
+      <div class="sub scene" data-label="5 · Verify">
         <div class="stage chat">
           <div class="you" data-type="(Claude flagged these without being asked.)"></div>
           <div class="ans">
@@ -807,6 +882,38 @@ tr:last-child td{ border-bottom:0; }
           <div><b>The connector is a preview</b><p>ForeFlight's tools change. This page is rechecked monthly; the date below shows the last check.</p></div></div>
       </div>
       <p class="cap" data-say>Use Claude like a sharp copilot doing the research. Claude is fast, and usually right. But Claude isn't a briefing, and Claude doesn't sign your logbook. You do.</p>
+    </section>
+
+        <!-- ===================== 7 WRAP-UP ===================== -->
+    <section class="chap" data-title="Wrap-up" aria-label="Wrap-up">
+      <div class="chap-k">Chapter 7</div>
+      <h2>One conversation. Under ten minutes.</h2>
+      <div class="stage wrap">
+        <svg class="wrap-bg" viewBox="0 0 700 420" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <path id="wrapRoute" d="M560 380 C 470 300, 330 260, 300 210 S 210 80, 140 40" fill="none" stroke="#f5a623" stroke-opacity=".22" stroke-width="2" stroke-dasharray="6 8" class="pulse-line"/>
+          <circle cx="560" cy="380" r="5" fill="#f5a623" fill-opacity=".5"/><circle cx="300" cy="210" r="5" fill="none" stroke="#f5a623" stroke-opacity=".5" stroke-width="2"/><circle cx="140" cy="40" r="5" fill="#f5a623" fill-opacity=".5"/>
+          <g opacity=".85"><path d="M0 -7 L5 6 L0 3 L-5 6 Z" fill="#f5a623"><animateMotion dur="9s" repeatCount="indefinite" rotate="auto" keyPoints="0;1" keyTimes="0;1"><mpath href="#wrapRoute"/></animateMotion></path></g>
+        </svg>
+        <div class="ledger">
+          <div class="lrow"><div class="lyou">“…a weekend trip to the coast of Oregon. What do airports and weather look like?”<em>2 sentences</em></div><div class="larrow">→</div><div class="lgot"><b data-n="6">0</b> airports compared, plus a 5-day weather trend</div></div>
+          <div class="lrow"><div class="lyou">“Sure.”<em>1 word</em></div><div class="larrow">→</div><div class="lgot"><b data-n="9">0</b> departure windows scored by PlaneWX</div></div>
+          <div class="lrow"><div class="lyou">“Yes, pls.”<em>2 words</em></div><div class="larrow">→</div><div class="lgot"><b data-n="4">0</b> flights created in ForeFlight, in my airplane, with my W&amp;B</div></div>
+          <div class="lrow"><div class="lyou">“…3 Airbnbs, a couple eateries, and some sights.”<em>1 sentence</em></div><div class="larrow">→</div><div class="lgot"><b data-n="13">0</b> places to stay, eat and see</div></div>
+        </div>
+        <div class="wrap-tiles">
+          <div class="wt"><div class="v" data-n="62">0</div><div class="l">words from me</div></div>
+          <div class="wt hot"><div class="v">&lt;<span data-n="10">0</span> min</div><div class="l">start to finish</div></div>
+          <div class="wt"><div class="v" data-n="1">0</div><div class="l">Claude chat, start to finish</div></div>
+        </div>
+        <p class="wrap-line">The value? <span>Your time.</span></p>
+      </div>
+      <div class="wrap-cta">
+        <a class="btn primary" href="https://claude.ai/customize/connectors/id/foreflight-mobile" target="_blank" rel="noopener">Connect ForeFlight in Claude →</a>
+        <button class="btn" type="button" data-jump="0:0">↺ Watch again</button>
+        <button class="btn ggp-share" type="button">Share with a pilot friend</button>
+      </div>
+      <p class="small" style="margin:10px 2px 0">Counts are from my 13-Oct-2026 chat: 4 prompts between 09:27 and 09:35. PlaneWX is a separate connector.</p>
+      <p class="cap" data-say>That's the whole trip: four prompts, about sixty words from me, and Claude did the legwork across ForeFlight and PlaneWX. The value? Your time.</p>
     </section>
 
     <div class="nav">
@@ -961,7 +1068,7 @@ tr:last-child td{ border-bottom:0; }
     sc.querySelectorAll('.chip').forEach(c => c.classList.remove('in'));
     const ans = sc.querySelector('.ans');
     if (ans) [...ans.children].forEach(c => c.classList.remove('in'));
-    sc.querySelectorAll('.fcard').forEach(c => c.classList.remove('in'));
+    sc.querySelectorAll('.fcard, .titem').forEach(c => c.classList.remove('in'));
     sc.querySelectorAll('.leg-path').forEach(p => { p.classList.remove('drawn'); void p.getBoundingClientRect(); });
     if (sc.querySelector('#wxStrip')) wxEl.innerHTML = '';
     const you = sc.querySelector('.you');
@@ -974,6 +1081,8 @@ tr:last-child td{ border-bottom:0; }
       if (c.contains(wxEl)) drawWx();
       c.classList.add('in');
       c.querySelectorAll('.leg-path').forEach(p => p.classList.add('drawn'));
+      const items = c.querySelectorAll('.titem');
+      if (items.length) { for (const it of items) { if (!alive(tok)) return; await sleep(140); it.classList.add('in'); } }
       const cards = c.querySelectorAll('.fcard');
       if (cards.length) { await sleep(900); for (const f of cards) { if (!alive(tok)) return; f.classList.add('in'); await sleep(320); } }
       await sleep(450);
@@ -1002,6 +1111,18 @@ tr:last-child td{ border-bottom:0; }
       arc.style.transition = '';
       arc.style.strokeDashoffset = len * (1 - parseFloat(g.dataset.frac));
     });
+  }
+
+  // ---- wrap-up animation ----
+  async function playWrap(ch, tok) {
+    const rows = [...ch.querySelectorAll('.lrow')], tiles = [...ch.querySelectorAll('.wt')], line = ch.querySelector('.wrap-line');
+    [...rows, ...tiles, line].forEach(e => e.classList.remove('in'));
+    ch.querySelectorAll('[data-n]').forEach(e => e.textContent = '0');
+    const tick = (el) => { el.dataset.count = el.dataset.n; countUp(el, tok); };
+    await sleep(300);
+    for (const r of rows) { if (!alive(tok)) return; r.classList.add('in'); const b = r.querySelector('[data-n]'); if (b) tick(b); await sleep(700); }
+    for (const t of tiles) { if (!alive(tok)) return; t.classList.add('in'); t.querySelectorAll('[data-n]').forEach(tick); await sleep(350); }
+    await sleep(700); if (alive(tok)) line.classList.add('in');
   }
 
   // ---- sub-steppers ----
@@ -1036,6 +1157,7 @@ tr:last-child td{ border-bottom:0; }
     if (el.classList.contains('scene')) playScene(el, tok);
     else if (el.closest('.chap') && el.closest('.chap').dataset.title === 'Logbook') { playLogbook(el, tok); loadMap(el); }
     else if (el === chaps[2]) playTools(tok);
+    else if (el.dataset && el.dataset.title === 'Wrap-up') playWrap(el, tok);
     if (voiceChk.checked) speakCurrent();
   }
 
