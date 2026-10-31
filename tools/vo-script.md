@@ -174,3 +174,5 @@ Panels not listed play your narration only.
 | Wrap-up | (pause 5.2 s for the animation) → Wayne narration |
 
 Raw recordings go in `tools/vo-raw/`; `python3 tools/build_vo.py` builds `site/media/vo/` and the file list.
+
+**Easiest way to record:** open https://claude-foreflight-primer.netlify.app/record/ — it prompts each line, counts down 3-2-1, records, lets you review, and saves with the right file name. After editing this script, run `python3 tools/update-recorder.py` to refresh its lines.

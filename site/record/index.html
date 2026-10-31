@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Primer VO Recorder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#10141a; --bg-panel:#1b222c; --bezel:#2a323f; --bezel-hi:#3a4454;
+  --amber:#f5a623; --amber-dim:#7a5a1e; --amber-glow:rgba(245,166,35,0.35);
+  --text-primary:#e7e4dc; --text-muted:#8b93a1; --teal:#3fa7a0; --focus:#f5a623; --alert:#e0705f;
+  --rec:#e0473a;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+@media (hover:none){.nav span{display:none}}
+html{background:var(--bg-deep);color-scheme:dark}
+body{margin:0;background:var(--bg-deep);color:var(--text-primary);font:16px/1.45 "IBM Plex Sans",system-ui,sans-serif;
+  padding:env(safe-area-inset-top) 16px calc(24px + env(safe-area-inset-bottom))}
+.wrap{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:1fr 290px;gap:18px;padding-top:16px}
+@media (max-width:820px){.wrap{grid-template-columns:1fr}}
+header{grid-column:1/-1;display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font:600 18px "IBM Plex Mono",monospace;letter-spacing:.06em;text-transform:uppercase;margin:0;color:var(--amber)}
+h1 span{color:var(--text-muted);font-weight:400}
+#tally{font:500 14px "IBM Plex Mono",monospace;color:var(--text-muted)}
+#tally b{color:var(--text-primary)}
+.card{background:var(--bg-panel);border:1px solid var(--bezel);border-radius:14px;padding:18px}
+.meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.kind{font:600 11px "IBM Plex Mono",monospace;letter-spacing:.1em;padding:3px 8px;border-radius:999px;border:1.5px solid var(--amber);color:var(--amber)}
+.kind.bubble{border-style:dashed}
+.panel{color:var(--text-muted);font-size:14px}
+.fname{margin-left:auto;font:500 14px "IBM Plex Mono",monospace;color:var(--text-primary);background:var(--bg-deep);border:1px solid var(--bezel);border-radius:6px;padding:3px 8px}
+#script{font-size:clamp(22px,3.2vw,30px);line-height:1.4;margin:6px 0 16px;min-height:4.2em}
+#script.bubble{border:1.5px solid var(--amber);border-radius:18px;padding:12px 16px;font-size:clamp(20px,2.8vw,26px)}
+.stage{position:relative;height:150px;background:var(--bg-deep);border:1px solid var(--bezel);border-radius:10px;overflow:hidden;display:grid;place-items:center}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%}
+#count{font:600 92px "IBM Plex Mono",monospace;color:var(--amber);text-shadow:0 0 30px var(--amber-glow);position:relative}
+#hint{color:var(--text-muted);font-size:15px;position:relative;text-align:center;padding:0 12px}
+#recbadge{position:absolute;top:10px;left:12px;font:600 14px "IBM Plex Mono",monospace;color:var(--rec);display:flex;align-items:center;gap:8px}
+#recbadge i{width:12px;height:12px;border-radius:50%;background:var(--rec);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+#playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--amber);left:0;display:none}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{font:600 16px "IBM Plex Sans",sans-serif;color:var(--text-primary);background:var(--bezel);border:1px solid var(--bezel-hi);border-radius:10px;padding:12px 18px;cursor:pointer;min-height:48px}
+button:hover{background:var(--bezel-hi)}
+button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+button.primary{background:var(--amber);border-color:var(--amber);color:#1a1205}
+button.primary:hover{filter:brightness(1.08)}
+button.rec{background:var(--rec);border-color:var(--rec);color:#fff}
+button.ok{margin-left:auto}
+button kbd{font:500 11px "IBM Plex Mono",monospace;opacity:.65;margin-left:6px}
+.nav{display:flex;gap:8px;margin-top:14px;align-items:center}
+.nav button{padding:8px 14px;min-height:40px;font-size:14px}
+.nav span{color:var(--text-muted);font-size:13px;margin-left:auto}
+#msg{min-height:1.4em;margin-top:10px;font-size:14px;color:var(--teal)}
+#msg.err{color:var(--alert)}
+aside h2{font:600 12px "IBM Plex Mono",monospace;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;margin:4px 0 8px}
+#list{list-style:none;margin:0;padding:0;max-height:70vh;overflow:auto}
+#list li{display:flex;gap:8px;align-items:center;padding:7px 8px;border-radius:8px;cursor:pointer;font-size:14px}
+#list li:hover{background:var(--bezel)}
+#list li.cur{background:var(--bezel);outline:1px solid var(--amber-dim)}
+#list .dot{width:18px;text-align:center;font-size:13px;color:var(--bezel-hi)}
+#list .saved .dot{color:var(--amber)}
+#list .live .dot{color:var(--teal)}
+#list code{font:500 13px "IBM Plex Mono",monospace}
+#list small{color:var(--text-muted);margin-left:auto;font-size:11px;white-space:nowrap}
+.legend{font-size:12px;color:var(--text-muted);margin-top:10px;line-height:1.6}
+.legend b{font-weight:500}
+.tips{grid-column:1/-1;color:var(--text-muted);font-size:13px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>VO Recorder <span>· Claude + ForeFlight Primer</span></h1>
+    <div id="tally"></div>
+  </header>
+
+  <main class="card">
+    <div class="meta">
+      <span class="kind" id="kind">NARRATION</span>
+      <span class="panel" id="panel"></span>
+      <span class="fname" id="fname"></span>
+    </div>
+    <div id="script"></div>
+    <div class="stage" id="stage">
+      <canvas id="cv"></canvas>
+      <div id="playhead"></div>
+      <div id="recbadge" hidden><i></i><span id="clock">0.0</span></div>
+      <div id="count" hidden></div>
+      <div id="hint"></div>
+    </div>
+    <div class="btns" id="btns"></div>
+    <div id="msg"></div>
+    <div class="nav">
+      <button id="prev">◀ Prev</button>
+      <button id="next">Next ▶</button>
+      <span>Space record/stop · P play · R redo · Enter save · ← → line</span>
+    </div>
+  </main>
+
+  <aside class="card">
+    <h2>Lines</h2>
+    <ul id="list"></ul>
+    <div class="legend"><b style="color:var(--amber)">✓</b> saved on this device &nbsp; <b style="color:var(--teal)">●</b> already in the primer</div>
+  </aside>
+
+  <p class="tips">Saved files go to your Downloads folder (on iPhone, pick “Save to Files” or AirDrop). Attach them in the Claude chat and they go straight into the primer. Bubble lines get the ding, bubble tone and send sound added later, so record them clean like everything else.</p>
+</div>
+
+<script>
+const LINES = /*LINES*/[{"name": "ch0", "panel": "Start", "text": "Your ForeFlight account already holds years of flying: your logbook, your aircraft, your saved flights. Connect ForeFlight to Claude, and you can ask Claude about all of that in plain English, and have Claude build flights right back into ForeFlight.", "kind": "narration", "live": false}, {"name": "ch1", "panel": "Why", "text": "Three reasons to connect. See everywhere your logbook has taken you. Research a trip in one conversation. And when you like the plan, have Claude put the flights straight into ForeFlight.", "kind": "narration", "live": false}, {"name": "ch2", "panel": "Before you start", "text": "You'll need an individual ForeFlight plan, Starter, Essential or Premium, and a Claude account on any plan. ForeFlight calls the connector a preview, so expect ForeFlight to add and change features.", "kind": "narration", "live": false}, {"name": "ch3-1", "panel": "Connect · 1 · Find ForeFlight", "text": "In any Claude chat, tap plus, then Connectors, then Manage connectors. Open the Discover tab, search for ForeFlight, and select ForeFlight Mobile.", "kind": "narration", "live": false}, {"name": "ch3-2", "panel": "Connect · 2 · Connect", "text": "Selecting ForeFlight Mobile opens its page in Claude. Click Connect, and Claude hands you over to ForeFlight to sign in.", "kind": "narration", "live": false}, {"name": "ch3-3", "panel": "Connect · 3 · Sign in to ForeFlight", "text": "ForeFlight asks you to sign in with your ForeFlight account, if you aren't already signed in, and to approve access for Claude.", "kind": "narration", "live": false}, {"name": "ch3-4", "panel": "Connect · 4 · Switch on", "text": "In a chat, tap plus, then Connectors, and check that ForeFlight Mobile's switch is on. If it's off, Claude can't see your ForeFlight data in that chat.", "kind": "narration", "live": false}, {"name": "ch3-5", "panel": "Connect · 5 · Test", "text": "Ask Claude to try the connection. Claude should come back with your aircraft from ForeFlight. If Claude does, you're connected.", "kind": "narration", "live": false}, {"name": "ch4-1", "panel": "Logbook · A · Totals", "text": "Fourteen years of logbook, summarized by Claude from one question.", "kind": "narration", "live": false}, {"name": "ch4-2", "panel": "Logbook · B · Map", "text": "I asked Claude for every airport in my ForeFlight logbook, departures, destinations and route waypoints, and Claude built this map. Here it zooms to Newport, Oregon, then to San Pedro de la Cueva in Sonora, Mexico.", "kind": "narration", "live": false}, {"name": "ch5-1", "panel": "One trip · 1 · Check", "text": "First, a quick check. Claude found my 44 saved aircraft, and flagged an airplane that appears twice. That's a cleanup I'd never have spotted.", "kind": "narration", "live": false}, {"name": "ch5-2", "panel": "One trip · 2 · Research", "text": "Claude pulled runway, fuel price and pilot notes for six coast airports, then the forecast trend. Good Thursday and Friday morning, stratus Friday afternoon, and rain by Sunday night.", "kind": "narration", "live": false}, {"name": "ch5-3", "panel": "One trip · 3 · Plan", "text": "I also had Claude score departure windows with another connector, PlaneWX. Friday morning won. Then I said yes, please, and four flights showed up in ForeFlight, in my airplane, with my weight and balance profile.", "kind": "narration", "live": false}, {"name": "ch5-4", "panel": "One trip · 4 · Stay & eat", "text": "Then the fun part. One more sentence, and Claude came back with three places to stay, five places to eat, and five things to see in Newport, arranged around the forecast.", "kind": "narration", "live": false}, {"name": "ch5-5", "panel": "One trip · 5 · Verify", "text": "The best part: Claude told me where its sources disagreed, and that my Friday arrival was cutting things close. Claude is a research partner, not a briefing. I'm still pilot in command.", "kind": "narration", "live": false}, {"name": "ch6", "panel": "Good habits", "text": "Use Claude like a sharp copilot doing the research. Claude is fast, and usually right. But Claude isn't a briefing, and Claude doesn't sign your logbook. You do.", "kind": "narration", "live": false}, {"name": "ch7", "panel": "Wrap-up", "text": "The value? Your time… maybe minutes instead of hours.", "kind": "narration", "live": false}, {"name": "wayne-ch3-5", "panel": "Connect · 5 · Test", "text": "Let's try the connection to ForeFlight.", "kind": "bubble", "live": false}, {"name": "wayne-ch4-1", "panel": "Logbook · A · Totals", "text": "Summarize my logbook by year: total hours, cross-country, and approaches.", "kind": "bubble", "live": false}, {"name": "wayne-ch5-1", "panel": "One trip · 1 · Check", "text": "Let's try the connection to ForeFlight.", "kind": "bubble", "live": false}, {"name": "wayne-ch5-2", "panel": "One trip · 2 · Research", "text": "I'm thinking about a weekend trip to the Pacific coast of Oregon sometime in the next few weeks. What do things look like in terms of airports and possible weather?", "kind": "bubble", "live": false}, {"name": "wayne-ch5-2b", "panel": "One trip · 2 · Research", "text": "Sure.", "kind": "bubble", "live": false}, {"name": "wayne-ch5-3", "panel": "One trip · 3 · Plan", "text": "Yes, please.", "kind": "bubble", "live": false}, {"name": "wayne-ch5-4", "panel": "One trip · 4 · Stay & eat", "text": "For the overnights in Newport, please find three possible Airbnbs, a couple of eateries for lunch and dinner, and maybe some sights to see or things to do.", "kind": "bubble", "live": false}]/*END*/;
+const $ = id => document.getElementById(id);
+const SKEY = 'cfp.rec.saved';
+let saved = {}; try { saved = JSON.parse(localStorage.getItem(SKEY) || '{}'); } catch (e) {}
+const keep = () => { try { localStorage.setItem(SKEY, JSON.stringify(saved)); } catch (e) {} };
+
+let idx = 0, state = 'idle';           // idle | count | rec | review
+let stream = null, actx = null, analyser = null, rec = null, chunks = [], blob = null, blobUrl = null, peaks = null;
+let timers = [], raf = 0, t0 = 0;
+const player = new Audio();
+const TYPES = [['audio/mp4;codecs=mp4a.40.2', 'm4a'], ['audio/mp4', 'm4a'], ['audio/webm;codecs=opus', 'webm'], ['audio/webm', 'webm'], ['audio/ogg;codecs=opus', 'ogg']];
+const fmt = (typeof MediaRecorder !== 'undefined' && TYPES.find(([t]) => MediaRecorder.isTypeSupported(t))) || ['', 'm4a'];
+const fileName = () => LINES[idx].name + '.' + fmt[1];
+
+// ---------- rendering ----------
+function renderList() {
+  const ul = $('list'); ul.innerHTML = '';
+  LINES.forEach((l, i) => {
+    const li = document.createElement('li');
+    li.className = (i === idx ? 'cur ' : '') + (saved[l.name] ? 'saved' : l.live ? 'live' : '');
+    li.innerHTML = `<span class="dot">${saved[l.name] ? '✓' : l.live ? '●' : '○'}</span><code>${l.name}</code><small>${l.kind === 'bubble' ? 'bubble' : ''}</small>`;
+    li.onclick = () => go(i);
+    ul.appendChild(li);
+    if (i === idx) li.scrollIntoView({ block: 'nearest' });
+  });
+  const n = LINES.filter(l => saved[l.name]).length;
+  $('tally').innerHTML = `<b>${n}</b> of ${LINES.length} saved`;
+}
+function renderLine() {
+  const l = LINES[idx];
+  $('kind').textContent = l.kind === 'bubble' ? 'WAYNE BUBBLE' : 'NARRATION';
+  $('kind').className = 'kind' + (l.kind === 'bubble' ? ' bubble' : '');
+  $('panel').textContent = l.panel;
+  $('fname').textContent = fileName();
+  $('script').textContent = l.text;
+  $('script').className = l.kind === 'bubble' ? 'bubble' : '';
+}
+function setState(s) {
+  state = s;
+  const b = $('btns'); b.innerHTML = '';
+  const add = (label, cls, fn, key) => { const e = document.createElement('button'); e.className = cls || ''; e.innerHTML = label + (key ? `<kbd>${key}</kbd>` : ''); e.onclick = fn; b.appendChild(e); return e; };
+  $('count').hidden = s !== 'count'; $('recbadge').hidden = s !== 'rec';
+  $('hint').hidden = !(s === 'idle'); $('playhead').style.display = s === 'review' ? 'block' : 'none';
+  $('prev').disabled = $('next').disabled = (s === 'count' || s === 'rec');
+  if (s === 'idle') {
+    clearCanvas();
+    $('hint').textContent = saved[LINES[idx].name] ? 'Saved already. Record again to replace.' : 'Press Record. A 3-second countdown, then speak.';
+    add('● Record', 'rec', startCount, 'Space').focus();
+  } else if (s === 'count') add('Cancel', '', cancel, 'Esc');
+  else if (s === 'rec') add('■ Stop', 'rec', stopRec, 'Space').focus();
+  else if (s === 'review') {
+    add('▶ Play', '', play, 'P');
+    add('↺ Redo', '', redo, 'R');
+    add('✓ OK, save ' + fileName(), 'primary ok', save, 'Enter').focus();
+  }
+}
+function go(i) {
+  if (state === 'count' || state === 'rec') return;
+  idx = (i + LINES.length) % LINES.length;
+  discard(); renderLine(); renderList(); setState('idle'); msg('');
+  try { localStorage.setItem('cfp.rec.idx', idx); } catch (e) {}
+}
+function msg(t, err) { $('msg').textContent = t; $('msg').className = err ? 'err' : ''; }
+
+// ---------- canvas ----------
+const cv = $('cv'), g = cv.getContext('2d');
+function fit() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; g.setTransform(d, 0, 0, d, 0, 0); return r; }
+function clearCanvas() { const r = fit(); g.clearRect(0, 0, r.width, r.height); }
+function drawLive() {
+  const r = fit(), buf = new Float32Array(analyser.fftSize);
+  const hist = [];
+  const step = () => {
+    analyser.getFloatTimeDomainData(buf);
+    let pk = 0; for (const v of buf) pk = Math.max(pk, Math.abs(v));
+    hist.push(pk); if (hist.length > r.width / 3) hist.shift();
+    g.clearRect(0, 0, r.width, r.height);
+    const mid = r.height / 2;
+    hist.forEach((p, i) => {
+      const h = Math.max(1, p * mid * 0.95);
+      g.fillStyle = p > 0.97 ? '#e0705f' : '#f5a623';
+      g.fillRect(r.width - (hist.length - i) * 3, mid - h, 2, h * 2);
+    });
+    $('clock').textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' s';
+    raf = requestAnimationFrame(step);
+  };
+  step();
+}
+function drawWave(prog) {
+  const r = fit(); g.clearRect(0, 0, r.width, r.height);
+  if (!peaks) { g.fillStyle = '#8b93a1'; g.font = '14px IBM Plex Sans'; g.textAlign = 'center'; g.fillText('Recorded. Press Play to review.', r.width / 2, r.height / 2); return; }
+  const mid = r.height / 2, n = peaks.length, w = r.width / n;
+  for (let i = 0; i < n; i++) {
+    const h = Math.max(1, peaks[i] * mid * 0.95);
+    g.fillStyle = (prog != null && i / n <= prog) ? '#f5a623' : '#7a5a1e';
+    g.fillRect(i * w, mid - h, Math.max(1, w - 1), h * 2);
+  }
+}
+
+// ---------- audio ----------
+async function ensureMic() {
+  if (stream) return true;
+  if (!navigator.mediaDevices || typeof MediaRecorder === 'undefined') { msg('This browser can’t record audio. Try Safari or Chrome.', true); return false; }
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
+  } catch (e) { msg('Microphone blocked. Allow the mic for this site and try again.', true); return false; }
+  actx = new (window.AudioContext || window.webkitAudioContext)();
+  analyser = actx.createAnalyser(); analyser.fftSize = 2048;
+  actx.createMediaStreamSource(stream).connect(analyser);
+  return true;
+}
+function beep(f, dur = 0.12) {
+  const o = actx.createOscillator(), v = actx.createGain();
+  o.frequency.value = f; o.type = 'sine';
+  v.gain.setValueAtTime(0.0001, actx.currentTime);
+  v.gain.exponentialRampToValueAtTime(0.25, actx.currentTime + 0.01);
+  v.gain.exponentialRampToValueAtTime(0.0001, actx.currentTime + dur);
+  o.connect(v).connect(actx.destination); o.start(); o.stop(actx.currentTime + dur + 0.02);
+}
+async function startCount() {
+  if (state !== 'idle' && state !== 'review') return;
+  discard(); msg('');
+  if (!(await ensureMic())) return;
+  if (actx.state === 'suspended') await actx.resume();
+  setState('count');
+  [3, 2, 1].forEach((n, i) => timers.push(setTimeout(() => { $('count').textContent = n; beep(660); }, i * 1000)));
+  timers.push(setTimeout(startRec, 3000));
+}
+function startRec() {
+  chunks = [];
+  try { rec = fmt[0] ? new MediaRecorder(stream, { mimeType: fmt[0], audioBitsPerSecond: 160000 }) : new MediaRecorder(stream); }
+  catch (e) { rec = new MediaRecorder(stream); }
+  rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+  rec.onstop = finishRec;
+  rec.start();
+  t0 = performance.now();
+  setState('rec'); drawLive();
+}
+function stopRec() { if (state === 'rec' && rec && rec.state !== 'inactive') { cancelAnimationFrame(raf); rec.stop(); } }
+async function finishRec() {
+  blob = new Blob(chunks, { type: rec.mimeType || fmt[0] || 'audio/mp4' });
+  blobUrl = URL.createObjectURL(blob);
+  player.src = blobUrl;
+  peaks = null; setState('review'); drawWave();
+  const secs = ((performance.now() - t0) / 1000).toFixed(1);
+  msg(`Recorded ${secs} s. Play it back, then save or redo.`);
+  try {
+    const ab = await blob.arrayBuffer();
+    const buf = await new Promise((res, rej) => actx.decodeAudioData(ab, res, rej));
+    const d = buf.getChannelData(0), n = 400, size = Math.floor(d.length / n) || 1;
+    peaks = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let m = 0; for (let j = i * size; j < (i + 1) * size && j < d.length; j++) m = Math.max(m, Math.abs(d[j])); peaks[i] = m; }
+    const top = Math.max(...peaks);
+    if (top > 0.98) msg('Recorded, but it clipped (too loud). Back off the mic a little and redo.', true);
+    else if (top < 0.08) msg('Recorded, but it’s very quiet. Move closer to the mic and redo.', true);
+    drawWave();
+  } catch (e) { /* waveform is optional */ }
+}
+function play() {
+  if (!blobUrl) return;
+  if (!player.paused) { player.pause(); return; }
+  player.currentTime = 0; player.play().catch(() => msg('Playback was blocked. Tap Play again.', true));
+  const tick = () => {
+    if (player.paused || player.ended) { drawWave(); $('playhead').style.left = '0'; return; }
+    const p = player.duration && isFinite(player.duration) ? player.currentTime / player.duration : null;
+    drawWave(p); if (p != null) $('playhead').style.left = (p * 100) + '%';
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function redo() { player.pause(); startCount(); }
+function cancel() { timers.forEach(clearTimeout); timers = []; setState('idle'); }
+function discard() { player.pause(); timers.forEach(clearTimeout); timers = []; if (blobUrl) URL.revokeObjectURL(blobUrl); blob = blobUrl = peaks = null; }
+
+async function save() {
+  if (!blob) return;
+  player.pause();
+  const name = fileName();
+  const file = new File([blob], name, { type: blob.type });
+  const touch = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+  let ok = false;
+  if (touch && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: name }); ok = true; }
+    catch (e) { if (e.name === 'AbortError') { msg('Not saved. Tap OK again when ready.'); return; } }
+  }
+  if (!ok) {
+    const a = document.createElement('a'); a.href = blobUrl; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove(); ok = true;
+  }
+  saved[LINES[idx].name] = Date.now(); keep();
+  const nextI = LINES.findIndex((l, i) => i > idx && !saved[l.name]);
+  const done = LINES[idx].name;
+  setTimeout(() => {
+    if (nextI >= 0) { go(nextI); msg(`Saved ${name}. Next up: ${LINES[nextI].name}.`); }
+    else { renderList(); setState('idle'); msg(`Saved ${name}. That’s every line after ${done}.`); }
+  }, 600);
+}
+
+// ---------- keys ----------
+document.addEventListener('keydown', e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const k = e.key;
+  if ((k === ' ' || k === 'Enter') && document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.blur();
+  if (k === ' ') { e.preventDefault(); if (state === 'rec') stopRec(); else if (state === 'idle' || state === 'review') startCount(); }
+  else if (k === 'Escape' && state === 'count') cancel();
+  else if ((k === 'p' || k === 'P') && state === 'review') play();
+  else if ((k === 'r' || k === 'R') && state === 'review') redo();
+  else if (k === 'Enter' && state === 'review') { e.preventDefault(); save(); }
+  else if (k === 'ArrowRight' && state !== 'rec' && state !== 'count') go(idx + 1);
+  else if (k === 'ArrowLeft' && state !== 'rec' && state !== 'count') go(idx - 1);
+});
+$('prev').onclick = () => go(idx - 1);
+$('next').onclick = () => go(idx + 1);
+addEventListener('resize', () => { if (state === 'review') drawWave(); });
+
+// ---------- start ----------
+const hashName = decodeURIComponent(location.hash.slice(1));
+let start = LINES.findIndex(l => l.name === hashName);
+if (start < 0) { try { start = +localStorage.getItem('cfp.rec.idx') || 0; } catch (e) { start = 0; } }
+if (start < 0 || start >= LINES.length) start = 0;
+go(start);
+</script>
+</body>
+</html>

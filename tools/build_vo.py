@@ -2,7 +2,7 @@
 """Build the primer's voice-over files from the raw recordings (needs ffmpeg and numpy; run in a Claude session).
 
 tools/vo-raw/  raw recordings, not published:
-  ch*.mp3|m4a      Wayne narrating      -> copied as is (clean, full volume)
+  ch*.mp3|m4a|webm Wayne narrating (webm/ogg from the recorder page get converted)      -> copied as is (clean, full volume)
   claude-*.m4a     Claude (Reed) bubble -> ding + bubble voice + send
   wayne-*.m4a|mp3  Wayne's typed prompt -> ding + bubble voice + send
 Bubble voice: 80% of the clean level, 300-3400 Hz band, light compression, faint pink-noise bed (approved 31-Oct-2026).
@@ -48,6 +48,10 @@ def make_fx(tmp):
 def ff(*args):
     subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', *args], check=True)
 
+def codec(src):
+    r = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'a:0', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', str(src)], capture_output=True, text=True)
+    return r.stdout.strip()
+
 def bubble(src, dst, tmp):
     v = tmp / 'v.wav'
     ff('-i', str(src), '-f', 'lavfi', '-i', 'anoisesrc=color=pink:amplitude=0.012:sample_rate=44100', '-filter_complex',
@@ -64,12 +68,14 @@ def main():
         for fx in ('ding', 'send'):   # also published on their own, for bubbles read by the browser voice
             ff('-i', str(tmp / (fx + '.wav')), '-c:a', 'aac', '-b:a', '96k', str(OUT / (fx + '.m4a')))
         for src in sorted(RAW.iterdir()):
-            if src.suffix.lower() not in ('.m4a', '.mp3', '.wav', '.aiff'): continue
+            if src.suffix.lower() not in ('.m4a', '.mp3', '.wav', '.aiff', '.webm', '.ogg'): continue
             name = src.stem
             if name.startswith(('claude-', 'wayne-')):
                 bubble(src, OUT / (name + '.m4a'), tmp); print('bubble ', name)
             else:
-                ff('-i', str(src), '-c', 'copy', str(OUT / src.name)) if src.suffix.lower() in ('.m4a', '.mp3') else \
+                if src.suffix.lower() in ('.m4a', '.mp3') and codec(src) in ('aac', 'mp3'):
+                    ff('-i', str(src), '-c', 'copy', str(OUT / src.name))
+                else:   # wav/aiff/webm, or an .m4a holding Opus (Chrome's recorder): convert to AAC .m4a
                     ff('-i', str(src), '-c:a', 'aac', '-b:a', '128k', str(OUT / (name + '.m4a')))
                 print('narration', name)
     subprocess.run([sys.executable, str(ROOT / 'tools/update-vo-manifest.py')], check=True)
