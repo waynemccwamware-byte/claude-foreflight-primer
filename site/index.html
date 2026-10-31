@@ -466,7 +466,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.31</span>
+    <span class="ver mono">v0.32</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1387,6 +1387,7 @@ tr:last-child td{ border-bottom:0; }
     'ch5-3': ['claude-ch5-3a', 'wayne-ch5-3', 'narr'],
     'ch5-4': ['wayne-ch5-4', 'narr'],
     'ch5-5': ['claude-ch5-5', 'narr'],
+    'ch7': ['wait:5200', 'narr'],   // after the summary animation lands on 'The value? Your time.'
   };
   let voTok = 0, skipFn = null, paused = false;
   const vctl = document.getElementById('vctl'), voPause = document.getElementById('voPause');
@@ -1413,15 +1414,17 @@ tr:last-child td{ border-bottom:0; }
     if (!cap) return;
     const tok = ++voTok, id = panelId();
     setPaused(false);
-    const steps = (SEQ[id] || ['narr']).map(n => n === 'narr' ? { kind: 'narr' }
+    const steps = (SEQ[id] || ['narr']).map(n => n === 'narr' ? { kind: 'narr' } : n.startsWith('wait:') ? { kind: 'wait', ms: +n.slice(5) }
       : { kind: 'file', names: ['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'] })
-      .map(st => st.kind === 'narr' || st.names.some(f => VO_FILES.has(f.split('/').pop())) ? st
+      .map(st => st.kind !== 'file' || st.names.some(f => VO_FILES.has(f.split('/').pop())) ? st
         : (WAYNE_TEXT[st.names[0].split('/').pop().replace(/\.m4a$/, '')] ? { kind: 'say', text: WAYNE_TEXT[st.names[0].split('/').pop().replace(/\.m4a$/, '')] } : null))
       .filter(Boolean);
+    if (steps.length && steps[0].kind === 'wait') unlockAudio();
     const go = (i) => {
       if (tok !== voTok) return;
       if (i >= steps.length) { skipFn = null; return; }
       const st = steps[i];
+      if (st.kind === 'wait') { const t = setTimeout(() => go(i + 1), reduce ? 0 : st.ms); skipFn = () => { clearTimeout(t); go(i + 1); }; return; }
       if (st.kind === 'file') { playFile(st.names, tok).then(() => go(i + 1)); return; }
       if (st.kind === 'say') {   // an unrecorded bubble: ding, the line in the browser voice, send
         playFile(['media/vo/ding.m4a'], tok).then(() => {
