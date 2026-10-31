@@ -61,6 +61,8 @@ def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as td:
         tmp = pathlib.Path(td); make_fx(tmp)
+        for fx in ('ding', 'send'):   # also published on their own, for bubbles read by the browser voice
+            ff('-i', str(tmp / (fx + '.wav')), '-c:a', 'aac', '-b:a', '96k', str(OUT / (fx + '.m4a')))
         for src in sorted(RAW.iterdir()):
             if src.suffix.lower() not in ('.m4a', '.mp3', '.wav', '.aiff'): continue
             name = src.stem

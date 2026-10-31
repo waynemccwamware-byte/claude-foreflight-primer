@@ -466,7 +466,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.30</span>
+    <span class="ver mono">v0.31</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1336,7 +1336,7 @@ tr:last-child td{ border-bottom:0; }
   // Voice-over: media/vo/<panel>.mp3 (ch0, ch1, ch3-1 … ch5-5, ch7) plays if present; else the browser voice
   let vo = null;
   // Voice-over files that exist (kept by tools/update-vo-manifest.py), so the page never probes for missing ones.
-  const VO_FILES = new Set(/*VO-MANIFEST*/["claude-ch5-1.m4a", "claude-ch5-2.m4a", "claude-ch5-3a.m4a", "claude-ch5-5.m4a"]/*END*/);
+  const VO_FILES = new Set(/*VO-MANIFEST*/["claude-ch5-1.m4a", "claude-ch5-2.m4a", "claude-ch5-3a.m4a", "claude-ch5-5.m4a", "ding.m4a", "send.m4a"]/*END*/);
   // iOS plays audio only on an element first started from a tap, so one element is reused for every clip.
   const player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', '');
   const SILENCE = 'data:audio/wav;base64,UklGRtQEAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbAEAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
@@ -1368,6 +1368,16 @@ tr:last-child td{ border-bottom:0; }
   // What plays on each panel, in order. 'narr' = Wayne narrating (clean); wayne-* = Wayne's typed prompt and
   // claude-* = Claude (Reed), both as chat-bubble clips (ding, bubble voice, send) built by tools/build_vo.py.
   // Files not recorded yet are skipped (VO_FILES). Panels not listed play the narration only.
+  // Wayne's bubble lines: read by the browser voice until his recordings (wayne-*.m4a) arrive
+  const WAYNE_TEXT = {
+    'wayne-ch3-5': "Let's try the connection to ForeFlight.",
+    'wayne-ch4-1': "Summarize my logbook by year: total hours, cross-country, and approaches.",
+    'wayne-ch5-1': "Let's try the connection to ForeFlight.",
+    'wayne-ch5-2': "I'm thinking about a weekend trip to the Pacific coast of Oregon sometime in the next few weeks. What do things look like in terms of airports and possible weather?",
+    'wayne-ch5-2b': "Sure.",
+    'wayne-ch5-3': "Yes, please.",
+    'wayne-ch5-4': "For the overnights in Newport, please find three possible Airbnbs, a couple of eateries for lunch and dinner, and maybe some sights to see or things to do.",
+  };
   const SEQ = {
     // Claude's voice speaks only what appears in a Claude chat bubble on screen (Wayne, 31-Oct-2026)
     'ch3-5': ['narr', 'wayne-ch3-5'],   // narration first: it tells you what to ask
@@ -1405,12 +1415,22 @@ tr:last-child td{ border-bottom:0; }
     setPaused(false);
     const steps = (SEQ[id] || ['narr']).map(n => n === 'narr' ? { kind: 'narr' }
       : { kind: 'file', names: ['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'] })
-      .filter(st => st.kind === 'narr' || st.names.some(f => VO_FILES.has(f.split('/').pop())));
+      .map(st => st.kind === 'narr' || st.names.some(f => VO_FILES.has(f.split('/').pop())) ? st
+        : (WAYNE_TEXT[st.names[0].split('/').pop().replace(/\.m4a$/, '')] ? { kind: 'say', text: WAYNE_TEXT[st.names[0].split('/').pop().replace(/\.m4a$/, '')] } : null))
+      .filter(Boolean);
     const go = (i) => {
       if (tok !== voTok) return;
       if (i >= steps.length) { skipFn = null; return; }
       const st = steps[i];
       if (st.kind === 'file') { playFile(st.names, tok).then(() => go(i + 1)); return; }
+      if (st.kind === 'say') {   // an unrecorded bubble: ding, the line in the browser voice, send
+        playFile(['media/vo/ding.m4a'], tok).then(() => {
+          if (tok !== voTok) return;
+          skipFn = () => { if (synth) synth.cancel(); };
+          speakSynth(null, () => { if (tok === voTok) playFile(['media/vo/send.m4a'], tok).then(() => go(i + 1)); }, st.text);
+        });
+        return;
+      }
       const files = ['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'];
       if (files.some(f => VO_FILES.has(f.split('/').pop()))) {
         cap.classList.add('speaking');
@@ -1436,16 +1456,17 @@ tr:last-child td{ border-bottom:0; }
   });
   // Browser voice, using the iOS lessons from the Clearance Delivery Trainer (v0.28-v0.30):
   // resume() before every speak(), and a poll in case iOS never fires 'end'.
-  function speakSynth(cap, done) {
+  function speakSynth(cap, done, sayText) {
     let fired = false;
     const fin = () => { if (fired) return; fired = true; cap && cap.classList.remove('speaking'); (done || (() => {}))(); };
-    if (!synth || !cap) { fin(); return; }
+    const text = sayText || (cap && cap.textContent);
+    if (!synth || !text) { fin(); return; }
     if (synth.speaking || synth.pending) synth.cancel();
-    const text = cap.textContent, my = voTok;
+    const my = voTok;
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 1.0; u.lang = 'en-US';
     u.onend = fin; u.onerror = fin;
-    cap.classList.add('speaking');
+    if (cap) cap.classList.add('speaking');
     try { synth.resume(); } catch (e) {}
     synth.speak(u);
     try { synth.resume(); } catch (e) {}   // iOS: a queue left paused by an earlier stop starts only after resume()
