@@ -900,7 +900,8 @@ tr:last-child td{ border-bottom:0; }
           <div class="you note" data-type="(Claude flagged these without being asked.)"></div>
           <div class="ans">
             <div class="note"><b>Sources disagreed.</b> PlaneWX graded a 200–900 ft ceiling at KONP Thursday from one MOS run; ForeFlight's MOS showed FEW/SCT clouds, not a ceiling, and its daily outlook showed sunny. Claude said to re-brief once a TAF covered Thursday.</div>
-            <div class="note"><b>Tight timing.</b> With the KRDD fuel stop, arrival at KONP would be about 14:45–15:00 Friday, right when the hourly model brought in stratus near 300 ft. Claude offered to move both Friday legs earlier.</div>
+            <div class="note"><b>Tight timing.</b> With the KRDD fuel stop, arrival at KONP would be about 14:45–15:00 Friday, right when the hourly model brought in stratus near 300 ft.</div>
+            <div class="clb"><span class="who">Claude</span>…Moving leg 1 to 07:00 gets you there around 13:00. I can shift both Friday legs if you want.</div>
           </div>
         </div>
         <p class="cap" data-say>The best part: Claude told me where its sources disagreed, and that my Friday arrival was cutting things close. Claude is a research partner, not a briefing. I'm still pilot in command.</p>
@@ -1136,7 +1137,7 @@ tr:last-child td{ border-bottom:0; }
     sc.querySelectorAll('.fcard, .titem').forEach(c => c.classList.remove('in'));
     sc.querySelectorAll('.leg-path').forEach(p => { p.classList.remove('drawn'); void p.getBoundingClientRect(); });
     if (sc.querySelector('#wxStrip')) wxEl.innerHTML = '';
-    const cls = [...sc.querySelectorAll('.clb')];
+    const cls = [...sc.querySelectorAll('.chat > .clb')];   // a .clb inside .ans appears in turn with the answer
     cls.forEach(c => c.classList.remove('in'));
     const you = sc.querySelector('.you');
     if (you) you.textContent = '';
@@ -1360,6 +1361,7 @@ tr:last-child td{ border-bottom:0; }
     'ch5-2': ['wayne-ch5-2', 'narr'],
     'ch5-3': ['claude-ch5-3a', 'wayne-ch5-3', 'narr'],
     'ch5-4': ['wayne-ch5-4', 'narr'],
+    'ch5-5': ['claude-ch5-5', 'narr'],
   };
   let voTok = 0, skipFn = null, paused = false;
   const vctl = document.getElementById('vctl'), voPause = document.getElementById('voPause');

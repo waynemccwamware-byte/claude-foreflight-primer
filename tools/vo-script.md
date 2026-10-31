@@ -95,7 +95,7 @@ Both are set up. Four flights are now in ForeFlight, in November two one one whi
 Three places to stay in Nye Beach, five places to eat, and five things to see. Save the aquarium for a foggy morning, and the headlands for when it clears.
 
 ## claude-ch5-5 — ch5-5 · One trip, Verify
-Two things to look at. The sources disagree on Thursday's ceiling at Newport. And with the fuel stop at Redding, you'd arrive just as the strattus moves in. I can move both Friday legs earlier.
+Moving leg one to zero seven hundred gets you there around thirteen hundred. I can shift both Friday legs if you want.
 
 
 ---

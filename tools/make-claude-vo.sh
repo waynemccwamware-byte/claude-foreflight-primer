@@ -15,6 +15,6 @@ make claude-ch5-2 "Here are six airports along the Oregon coast, with runway len
 make claude-ch5-3a "If you'd like, I can save the Friday zero niner hundred, Sunday zero eight hundred pair as a Plane W X trip, or draft the flight in ForeFlight with a fuel stop. Redding would be the natural midpoint."
 make claude-ch5-3b "Both are set up. Four flights are now in ForeFlight, in November two one one whiskey papa, with your weight and balance profile."
 make claude-ch5-4 "Three places to stay in Nye Beach, five places to eat, and five things to see. Save the aquarium for a foggy morning, and the headlands for when it clears."
-make claude-ch5-5 "Two things to look at. The sources disagree on Thursday's ceiling at Newport. And with the fuel stop at Redding, you'd arrive just as the strattus moves in. I can move both Friday legs earlier."
+make claude-ch5-5 "Moving leg one to zero seven hundred gets you there around thirteen hundred. I can shift both Friday legs if you want."
 echo "Done: $(ls "$DIR"/*.m4a | wc -l | tr -d " ") files in $DIR"
 open "$DIR"
