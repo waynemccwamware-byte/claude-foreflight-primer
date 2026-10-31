@@ -72,27 +72,28 @@ That's the whole trip: four prompts, about sixty words from me, and Claude did t
 
 ---
 
-# Claude's lines (voice: Reed, pitch 1.0, speed 1.0)
+# Claude's lines (voice: Reed, pitch 1.0, speed 1.0; pilot phraseology)
 
-Saved as `site/media/vo/<name>.m4a`; each plays after the narration on its panel.
+Saved as `site/media/vo/<name>.m4a`; each plays after the narration on its panel. Tail numbers in the phonetic alphabet, digits one at a time with "niner", times as zero-nine-hundred, matching the Clearance Delivery Trainer.
 
-## claude-ch3-5 — Connect, Test
-The ForeFlight connection is live. You have 44 saved aircraft, and N211WP, your DA40 XLS, is the primary. One thing to look at: N451RK appears twice, with different settings.
+## claude-ch3-5 — ch3-5 · Connect, Test
+The ForeFlight connection is live. You have forty-four saved aircraft, and November two one one whiskey papa, your Diamond D A forty, is the primary. One thing to look at: November four five one romeo kilo appears twice, with different settings.
 
-## claude-ch4-1 — Logbook, Totals
-Here's your logbook by year. Three thousand two hundred fifty hours since 2013, with 722 approaches.
+## claude-ch4-1 — ch4-1 · Logbook, Totals
+Here's your logbook by year. Three thousand two hundred fifty hours since twenty thirteen, with seven hundred twenty-two approaches.
 
-## claude-ch5-2 — One trip, Research
-Here are six airports along the Oregon coast, with runway lengths, fuel prices, and notes from other pilots. Thursday and Friday morning look best. Stratus moves in Friday afternoon, and rain arrives Sunday night.
+## claude-ch5-2 — ch5-2 · One trip, Research
+Here are six airports along the Oregon coast, with runway lengths, one hundred low lead prices, and notes from other pilots. Thursday and Friday morning look best. Stratus moves in Friday afternoon, ceilings near three hundred feet, and rain arrives Sunday night.
 
-## claude-ch5-3a — One trip, Plan (before "Yes, pls.")
-If you'd like, I can save the Friday nine o'clock, Sunday eight o'clock pair as a PlaneWX trip, or draft the flight in ForeFlight with a fuel stop. Redding would be the natural midpoint.
+## claude-ch5-3a — ch5-3 · One trip, Plan
+If you'd like, I can save the Friday zero niner hundred, Sunday zero eight hundred pair as a Plane W X trip, or draft the flight in ForeFlight with a fuel stop. Redding would be the natural midpoint.
 
-## claude-ch5-3b — One trip, Plan (after "Yes, pls.")
-Both are set up. Four flights are now in ForeFlight, in N211WP, with your weight and balance profile.
+## claude-ch5-3b — ch5-3 · One trip, Plan (after "Yes, pls.")
+Both are set up. Four flights are now in ForeFlight, in November two one one whiskey papa, with your weight and balance profile.
 
-## claude-ch5-4 — One trip, Stay & eat
+## claude-ch5-4 — ch5-4 · One trip, Stay & eat
 Three places to stay in Nye Beach, five places to eat, and five things to see. Save the aquarium for a foggy morning, and the headlands for when it clears.
 
-## claude-ch5-5 — One trip, Verify
-Two things to look at. The sources disagree on Thursday's ceiling at Newport. And with the fuel stop, you'd arrive just as the stratus moves in. I can move both Friday legs earlier.
+## claude-ch5-5 — ch5-5 · One trip, Verify
+Two things to look at. The sources disagree on Thursday's ceiling at Newport. And with the fuel stop at Redding, you'd arrive just as the stratus moves in. I can move both Friday legs earlier.
+
