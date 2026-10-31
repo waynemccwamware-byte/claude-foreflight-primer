@@ -54,9 +54,9 @@ def codec(src):
 
 NARR_LUFS, PAD = -21.0, 0.4   # narration sits ~2 dB above the bubble clips; keep 0.4 s of quiet at each end
 
-def narration(src, dst):
-    """Trim long head/tail silence to PAD, then level to NARR_LUFS (two-pass loudnorm), AAC .m4a."""
-    import json, re
+def trim_filter(src, pad):
+    """atrim filter that keeps `pad` seconds of quiet before the first and after the last sound."""
+    import re
     log = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(src), '-af', 'silencedetect=n=-45dB:d=0.25', '-f', 'null', '-'],
                          capture_output=True, text=True).stderr
     dur = float(re.search(r'Duration: (\d+):(\d+):([\d.]+)', log).groups()[2]) + 60 * int(re.search(r'Duration: (\d+):(\d+)', log).group(2))
@@ -64,8 +64,13 @@ def narration(src, dst):
     ends = [float(x) for x in re.findall(r'silence_end: ([\d.]+)', log)]
     a = ends[0] if starts and starts[0] <= 0.01 and ends else 0.0
     z = starts[-1] if starts and (len(starts) > len(ends) or ends[-1] >= dur - 0.05) else dur
-    a, z = max(0.0, a - PAD), min(dur, z + PAD)
-    trim = f'atrim={a:.3f}:{z:.3f},asetpts=PTS-STARTPTS,aformat=channel_layouts=mono'
+    a, z = max(0.0, a - pad), min(dur, z + pad)
+    return f'atrim={a:.3f}:{z:.3f},asetpts=PTS-STARTPTS,aformat=channel_layouts=mono'
+
+def narration(src, dst):
+    """Trim long head/tail silence to PAD, then level to NARR_LUFS (two-pass loudnorm), AAC .m4a."""
+    import json
+    trim = trim_filter(src, PAD)
     ln = f'loudnorm=I={NARR_LUFS}:TP=-1.5:LRA=11'
     m = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(src), '-af', f'{trim},{ln}:print_format=json', '-f', 'null', '-'],
                        capture_output=True, text=True).stderr
@@ -85,7 +90,7 @@ def bubble(src, dst, tmp):
     v = tmp / 'v.wav'
     gain = BUBBLE_IN_LUFS - lufs(src)   # bring every raw take (Wayne or Reed) to the same input level first
     ff('-i', str(src), '-f', 'lavfi', '-i', 'anoisesrc=color=pink:amplitude=0.012:sample_rate=44100', '-filter_complex',
-       f'[0:a]aresample=44100,aformat=channel_layouts=mono,volume={gain:.2f}dB,highpass=f=300,lowpass=f=3400,'
+       f'[0:a]{trim_filter(src, 0.15)},aresample=44100,volume={gain:.2f}dB,highpass=f=300,lowpass=f=3400,'
        'acompressor=threshold=-18dB:ratio=3:attack=5:release=80,volume=5.9dB,volume=0.8[v];'
        '[1:a]highpass=f=200,lowpass=f=5000[n];[v][n]amix=inputs=2:duration=first:normalize=0[o]', '-map', '[o]', str(v))
     ff('-i', str(tmp / 'ding.wav'), '-i', str(v), '-i', str(tmp / 'send.wav'), '-filter_complex',
