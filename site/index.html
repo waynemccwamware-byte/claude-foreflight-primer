@@ -466,7 +466,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.27</span>
+    <span class="ver mono">v0.28</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1325,7 +1325,7 @@ tr:last-child td{ border-bottom:0; }
     if (vo) { try { vo.pause(); } catch (e) {} vo = null; }
     player.onended = player.onerror = null;
     // the second cancel only if nothing new has started since (it was cancelling the next panel's narration)
-    if (synth) { const t = voTok; try { synth.pause(); } catch (e) {} synth.cancel(); setTimeout(() => { if (t === voTok && synth.speaking) synth.cancel(); }, 60); }
+    if (synth && (synth.speaking || synth.pending)) { const t = voTok; try { synth.pause(); } catch (e) {} synth.cancel(); setTimeout(() => { if (t === voTok && synth.speaking) synth.cancel(); }, 60); }
     document.querySelectorAll('.cap.speaking').forEach(c => c.classList.remove('speaking'));
   }
   // Voice-over: media/vo/<panel>.mp3 (ch0, ch1, ch3-1 … ch5-5, ch7) plays if present; else the browser voice
@@ -1399,8 +1399,6 @@ tr:last-child td{ border-bottom:0; }
     const steps = (SEQ[id] || ['narr']).map(n => n === 'narr' ? { kind: 'narr' }
       : { kind: 'file', names: ['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'] })
       .filter(st => st.kind === 'narr' || st.names.some(f => VO_FILES.has(f.split('/').pop())));
-    // a panel that opens with spoken narration still unlocks the media player in this tap, for its later clips
-    if (steps.length && steps[0].kind === 'narr') unlockAudio(true);
     const go = (i) => {
       if (tok !== voTok) return;
       if (i >= steps.length) { skipFn = null; return; }
@@ -1440,10 +1438,20 @@ tr:last-child td{ border-bottom:0; }
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 1.0; u.lang = 'en-US';
     u.onend = fin; u.onerror = fin;
-    u.onstart = () => markPlayed();
     cap.classList.add('speaking');
     try { synth.resume(); } catch (e) {}
     synth.speak(u);
+    try { synth.resume(); } catch (e) {}   // iOS: a queue left paused by an earlier stop starts only after resume()
+    let started = false; u.onstart = () => { started = true; markPlayed(); };
+    setTimeout(() => {   // still silent after 900 ms: try once more
+      if (fired || started || my !== voTok) return;
+      u.onend = u.onerror = u.onstart = null;   // so cancelling the stuck line doesn't count as finished
+      try { synth.cancel(); } catch (e) {}
+      const u2 = new SpeechSynthesisUtterance(text); u2.rate = 1.0; u2.lang = 'en-US';
+      u2.onend = fin; u2.onerror = fin; u2.onstart = () => { started = true; markPlayed(); };
+      try { synth.resume(); } catch (e) {}
+      synth.speak(u2);
+    }, 900);
     const est = 1200 + text.split(/\s+/).length * 450;
     const poll = () => { if (fired || my !== voTok) return; if (!synth.speaking) fin(); else setTimeout(poll, 500); };
     setTimeout(poll, est);
