@@ -136,6 +136,7 @@ svg{ display:block; max-width:100%; height:auto; }
 .voice{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); cursor:pointer; user-select:none; }
 .voice input{ accent-color:var(--amber); }
 .vctl{ display:inline-flex; gap:6px; }
+body.reading .cap{ display:none; }
 .vbtn{ width:34px; height:30px; border-radius:6px; border:1px solid var(--bezel-hi); background:transparent; color:var(--text-muted); cursor:pointer; font:600 12px 'IBM Plex Sans', sans-serif; }
 .vbtn:hover, .vbtn:focus-visible{ color:var(--amber); border-color:var(--amber); outline:none; }
 
@@ -449,7 +450,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.15</span>
+    <span class="ver mono">v0.16</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1347,7 +1348,7 @@ tr:last-child td{ border-bottom:0; }
     cap.classList.add('speaking');
     synth.speak(u);
   }
-  voiceChk.addEventListener('change', () => { vctl.hidden = !voiceChk.checked; if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
+  voiceChk.addEventListener('change', () => { vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked); if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
 
   // SVG SMIL animations: pause under reduced motion
   if (reduce) document.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });
