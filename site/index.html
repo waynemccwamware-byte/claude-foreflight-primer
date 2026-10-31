@@ -450,7 +450,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.18</span>
+    <span class="ver mono">v0.19</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1278,7 +1278,8 @@ tr:last-child td{ border-bottom:0; }
     voTok++;
     if (vo) { try { vo.pause(); } catch (e) {} vo = null; }
     player.onended = player.onerror = null;
-    if (synth) { try { synth.pause(); } catch (e) {} synth.cancel(); setTimeout(() => { if (synth.speaking) synth.cancel(); }, 60); }
+    // the second cancel only if nothing new has started since (it was cancelling the next panel's narration)
+    if (synth) { const t = voTok; try { synth.pause(); } catch (e) {} synth.cancel(); setTimeout(() => { if (t === voTok && synth.speaking) synth.cancel(); }, 60); }
     document.querySelectorAll('.cap.speaking').forEach(c => c.classList.remove('speaking'));
   }
   // Voice-over: media/vo/<panel>.mp3 (ch0, ch1, ch3-1 … ch5-5, ch7) plays if present; else the browser voice
@@ -1334,26 +1335,31 @@ tr:last-child td{ border-bottom:0; }
       if (p) p.then(() => { if (paused) player.pause(); }).catch(() => fin('missing'));
     });
   }
-  async function playNarration(cap, id, tok) {
-    cap.classList.add('speaking');
-    const r = await playFile(['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'], tok);
-    if (r === 'missing' && tok === voTok) await new Promise(res => { skipFn = () => { if (synth) synth.cancel(); res(); }; speakSynth(cap, res); });
-    cap.classList.remove('speaking');
-  }
-  async function playClaude(id, tok) {
-    for (const n of (CLAUDE_VO[id] || [])) {
-      if (tok !== voTok) return;
-      await playFile(['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'], tok);
-    }
-  }
-  async function speakCurrent() {
+  // The panel's clips play as a chain whose first sound starts synchronously inside the tap (iOS, App Conventions 8b
+  // rule 1): no await, timer or failed load before it. Each later clip starts from the previous one's end.
+  function speakCurrent() {
     const cap = currentCap();
     if (!cap) return;
     const tok = ++voTok, id = panelId();
     setPaused(false);
-    if (NARRATION_FIRST.has(id)) { await playNarration(cap, id, tok); if (tok === voTok) await playClaude(id, tok); }
-    else { await playClaude(id, tok); if (tok === voTok) await playNarration(cap, id, tok); }
-    if (tok === voTok) skipFn = null;
+    const claude = (CLAUDE_VO[id] || []).map(n => ({ kind: 'file', names: ['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'] }));
+    const narr = { kind: 'narr' };
+    const steps = NARRATION_FIRST.has(id) ? [narr, ...claude] : [...claude, narr];
+    const go = (i) => {
+      if (tok !== voTok) return;
+      if (i >= steps.length) { skipFn = null; return; }
+      const st = steps[i];
+      if (st.kind === 'file') { playFile(st.names, tok).then(() => go(i + 1)); return; }
+      const files = ['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'];
+      if (files.some(f => VO_FILES.has(f.split('/').pop()))) {
+        cap.classList.add('speaking');
+        playFile(files, tok).then(() => { cap.classList.remove('speaking'); go(i + 1); });
+      } else {
+        skipFn = () => { if (synth) synth.cancel(); };   // speakSynth's end handler (or its poll) moves on
+        speakSynth(cap, () => go(i + 1));
+      }
+    };
+    go(0);   // synchronously, inside the tap
   }
   voPause.addEventListener('click', () => {
     unlockAudio();
