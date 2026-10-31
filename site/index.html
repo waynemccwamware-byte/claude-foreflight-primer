@@ -450,7 +450,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.19</span>
+    <span class="ver mono">v0.20</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1290,13 +1290,13 @@ tr:last-child td{ border-bottom:0; }
   const player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', '');
   const SILENCE = 'data:audio/wav;base64,UklGRtQEAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbAEAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
   let audioUnlocked = false, speechUnlocked = false, speechUnlocking = false;
-  function unlockAudio() {
+  function unlockAudio(mediaOnly) {
     if (!audioUnlocked) {
       audioUnlocked = true;
       try { if (!vo) { player.src = SILENCE; const p = player.play(); if (p) p.catch(() => {}); } } catch (e) {}
     }
     // As in the Clearance Delivery Trainer: a short silent line on each tap until iOS reports one actually started
-    if (synth && !speechUnlocked && !speechUnlocking && !synth.speaking) {
+    if (!mediaOnly && synth && !speechUnlocked && !speechUnlocking && !synth.speaking && !synth.pending) {
       try {
         const u = new SpeechSynthesisUtterance('ok'); u.volume = 0; u.rate = 2;
         speechUnlocking = true;
@@ -1362,7 +1362,8 @@ tr:last-child td{ border-bottom:0; }
     go(0);   // synchronously, inside the tap
   }
   voPause.addEventListener('click', () => {
-    unlockAudio();
+    const idle = !paused && !(vo && !vo.paused && !vo.ended) && !(synth && (synth.speaking || synth.pending));
+    if (idle) { speakCurrent(); return; }   // nothing playing: replay this panel
     if (!paused) { setPaused(true); if (vo) try { vo.pause(); } catch (e) {} if (synth && synth.speaking) synth.pause(); }
     else { setPaused(false); if (vo && !vo.ended) vo.play().catch(() => {}); if (synth && synth.paused) synth.resume(); }
   });
@@ -1377,7 +1378,7 @@ tr:last-child td{ border-bottom:0; }
     let fired = false;
     const fin = () => { if (fired) return; fired = true; cap && cap.classList.remove('speaking'); (done || (() => {}))(); };
     if (!synth || !cap) { fin(); return; }
-    synth.cancel();
+    if (synth.speaking || synth.pending) synth.cancel();
     const text = cap.textContent, my = voTok;
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 1.0; u.lang = 'en-US';
@@ -1389,13 +1390,17 @@ tr:last-child td{ border-bottom:0; }
     const poll = () => { if (fired || my !== voTok) return; if (!synth.speaking) fin(); else setTimeout(poll, 500); };
     setTimeout(poll, est);
   }
-  voiceChk.addEventListener('change', () => { if (voiceChk.checked) unlockAudio(); vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked); if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
+  voiceChk.addEventListener('change', () => { if (voiceChk.checked && !CLAUDE_VO[panelId()]) unlockAudio(true); vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked); if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
 
   // SVG SMIL animations: pause under reduced motion
   if (reduce) document.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });
 
   // iOS counts touchend/click as the tap, not pointerdown
-  ['touchend', 'click', 'keydown'].forEach(t => document.addEventListener(t, () => { if (voiceChk.checked) unlockAudio(); }, { passive: true, capture: true }));
+  ['touchend', 'click', 'keydown'].forEach(t => document.addEventListener(t, (e) => {
+    // taps that start speech themselves (Read aloud, Next/Back, rail, sub-steps, Pause/Skip) unlock by speaking
+    if (!voiceChk.checked || (e.target.closest && e.target.closest('#voiceWrap, .nav, .rail, .subs, .vctl'))) return;
+    unlockAudio();
+  }, { passive: true, capture: true }));
 
   // ---- start (deep link #chN or #chN-M) ----
   const m = /^#ch(\d+)(?:-(\d+))?$/.exec(location.hash);
