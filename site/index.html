@@ -144,6 +144,8 @@ svg{ display:block; max-width:100%; height:auto; }
 .voice input{ accent-color:var(--amber); }
 .vctl{ display:inline-flex; gap:6px; }
 .vctl[hidden]{ display:none; }
+.vbtn.invite{ color:var(--amber); border-color:var(--amber); animation:invite 1.6s ease-in-out infinite; }
+@keyframes invite{ 0%,100%{ box-shadow:0 0 0 0 rgba(245,166,35,.5);} 50%{ box-shadow:0 0 0 6px rgba(245,166,35,0);} }
 body.reading .cap{ display:none; }
 .vbtn{ width:34px; height:30px; border-radius:6px; border:1px solid var(--bezel-hi); background:transparent; color:var(--text-muted); cursor:pointer; font:600 12px 'IBM Plex Sans', sans-serif; }
 .vbtn:hover, .vbtn:focus-visible{ color:var(--amber); border-color:var(--amber); outline:none; }
@@ -458,7 +460,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.23</span>
+    <span class="ver mono">v0.24</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -959,8 +961,8 @@ tr:last-child td{ border-bottom:0; }
     <div class="nav">
       <button class="btn" id="prevBtn" type="button">← Back</button>
       <div class="mid">
-        <label class="voice" id="voiceWrap"><input type="checkbox" id="voiceChk"> Read aloud</label>
-        <span class="vctl" id="vctl" hidden><button class="vbtn" id="voPause" type="button" aria-label="Pause">❚❚</button><button class="vbtn" id="voSkip" type="button" aria-label="Skip to next">⏭</button></span>
+        <label class="voice" id="voiceWrap"><input type="checkbox" id="muteChk"> Mute</label>
+        <span class="vctl" id="vctl"><button class="vbtn invite" id="voPause" type="button" aria-label="Play">▶</button><button class="vbtn" id="voSkip" type="button" aria-label="Skip to next">⏭</button></span>
       </div>
       <button class="btn primary" id="nextBtn" type="button">Next →</button>
     </div>
@@ -986,7 +988,12 @@ tr:last-child td{ border-bottom:0; }
   const rail = document.getElementById('rail');
   const prevBtn = document.getElementById('prevBtn');
   const nextBtn = document.getElementById('nextBtn');
-  const voiceChk = document.getElementById('voiceChk');
+  // Audio is on by default; the checkbox is Mute (as in the other GeezerGeek Pilot apps with audio). Remembered per browser.
+  const muteChk = document.getElementById('muteChk');
+  try { muteChk.checked = localStorage.getItem('cfp.mute') === '1'; } catch (e) {}
+  const voiceChk = { get checked() { return !muteChk.checked; } };   // "audio on"
+  document.body.classList.toggle('reading', voiceChk.checked);
+  let everPlayed = false, gestured = false;   // browsers start sound only after a tap; until then ▶ invites one
   let ci = 0;
   let runToken = 0;
 
@@ -1202,7 +1209,7 @@ tr:last-child td{ border-bottom:0; }
     else if (el.closest('.chap') && el.closest('.chap').dataset.title === 'Logbook') { playLogbook(el, tok); loadMap(el); }
     else if (el === chaps[2]) playTools(tok);
     else if (el.dataset && el.dataset.title === 'Wrap-up') playWrap(el, tok);
-    if (voiceChk.checked) speakCurrent();
+    if (voiceChk.checked && gestured) speakCurrent();   // no attempt before the first tap: a blocked attempt can leave speech stuck
   }
 
   // ---- chapters ----
@@ -1329,7 +1336,7 @@ tr:last-child td{ border-bottom:0; }
   const NARRATION_FIRST = new Set(['ch3-5']);
   let voTok = 0, skipFn = null, paused = false;
   const vctl = document.getElementById('vctl'), voPause = document.getElementById('voPause');
-  function setPaused(p) { paused = p; voPause.textContent = p ? '▶' : '❚❚'; voPause.setAttribute('aria-label', p ? 'Resume' : 'Pause'); }
+  function setPaused(p) { paused = p; const show = p || !everPlayed; voPause.textContent = show ? '▶' : '❚❚'; voPause.setAttribute('aria-label', !everPlayed ? 'Play' : (p ? 'Resume' : 'Pause')); }
   function playFile(names, tok) {   // resolve 'done' | 'missing' | 'skipped'
     return new Promise(res => {
       const name = names.find(n => VO_FILES.has(n.split('/').pop()));
@@ -1372,6 +1379,7 @@ tr:last-child td{ border-bottom:0; }
     go(0);   // synchronously, inside the tap
   }
   voPause.addEventListener('click', () => {
+    if (!everPlayed) { setPaused(false); speakCurrent(); return; }
     const idle = !paused && !(vo && !vo.paused && !vo.ended) && !(synth && (synth.speaking || synth.pending));
     if (idle) { speakCurrent(); return; }   // nothing playing: replay this panel
     if (!paused) { setPaused(true); if (vo) try { vo.pause(); } catch (e) {} if (synth && synth.speaking) synth.pause(); }
@@ -1393,6 +1401,7 @@ tr:last-child td{ border-bottom:0; }
     const u = new SpeechSynthesisUtterance(text);
     u.rate = 1.0; u.lang = 'en-US';
     u.onend = fin; u.onerror = fin;
+    u.onstart = () => markPlayed();
     cap.classList.add('speaking');
     try { synth.resume(); } catch (e) {}
     synth.speak(u);
@@ -1400,15 +1409,25 @@ tr:last-child td{ border-bottom:0; }
     const poll = () => { if (fired || my !== voTok) return; if (!synth.speaking) fin(); else setTimeout(poll, 500); };
     setTimeout(poll, est);
   }
-  voiceChk.addEventListener('change', () => { if (voiceChk.checked && !CLAUDE_VO[panelId()]) unlockAudio(true); vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked); if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
+  vctl.hidden = !voiceChk.checked;
+  muteChk.addEventListener('change', () => {
+    try { localStorage.setItem('cfp.mute', muteChk.checked ? '1' : '0'); } catch (e) {}
+    if (voiceChk.checked && !CLAUDE_VO[panelId()]) unlockAudio(true);
+    vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked);
+    if (voiceChk.checked) speakCurrent(); else stopSpeech();
+  });
+  player.addEventListener('playing', () => { if (player.src.indexOf('data:') !== 0) markPlayed(); });
+  function markPlayed() { if (everPlayed) return; everPlayed = true; voPause.classList.remove('invite'); setPaused(paused); }
 
   // SVG SMIL animations: pause under reduced motion
   if (reduce) document.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });
 
   // iOS counts touchend/click as the tap, not pointerdown
   ['touchend', 'click', 'keydown'].forEach(t => document.addEventListener(t, (e) => {
+    const first = !gestured; gestured = true;
     // taps that start speech themselves (Read aloud, Next/Back, rail, sub-steps, Pause/Skip) unlock by speaking
     if (!voiceChk.checked || (e.target.closest && e.target.closest('#voiceWrap, .nav, .rail, .subs, .vctl'))) return;
+    if (first && e.type !== 'keydown') { speakCurrent(); return; }   // first tap anywhere starts this panel
     unlockAudio();
   }, { passive: true, capture: true }));
 
