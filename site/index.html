@@ -466,7 +466,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.25</span>
+    <span class="ver mono">v0.26</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1349,11 +1349,18 @@ tr:last-child td{ border-bottom:0; }
     const ch = chaps[ci];
     return 'ch' + ci + (subState.has(ch) ? '-' + (subState.get(ch) + 1) : '');
   }
-  // Claude's voice (Reed): media/vo/claude-<panel>[a|b].m4a. Claude speaks first, then the narration,
-  // except on Connect step 5, where the narration tells you what to ask before Claude answers.
-  const CLAUDE_VO = { 'ch3-5':['claude-ch3-5'], 'ch4-1':['claude-ch4-1'], 'ch5-2':['claude-ch5-2'],
-    'ch5-3':['claude-ch5-3a','claude-ch5-3b'], 'ch5-4':['claude-ch5-4'], 'ch5-5':['claude-ch5-5'] };
-  const NARRATION_FIRST = new Set(['ch3-5']);
+  // What plays on each panel, in order. 'narr' = Wayne narrating (clean); wayne-* = Wayne's typed prompt and
+  // claude-* = Claude (Reed), both as chat-bubble clips (ding, bubble voice, send) built by tools/build_vo.py.
+  // Files not recorded yet are skipped (VO_FILES). Panels not listed play the narration only.
+  const SEQ = {
+    'ch3-5': ['narr', 'wayne-ch3-5', 'claude-ch3-5'],   // narration first: it tells you what to ask
+    'ch4-1': ['wayne-ch4-1', 'claude-ch4-1', 'narr'],
+    'ch5-1': ['wayne-ch5-1', 'narr'],
+    'ch5-2': ['wayne-ch5-2', 'claude-ch5-2', 'narr'],
+    'ch5-3': ['claude-ch5-3a', 'wayne-ch5-3', 'claude-ch5-3b', 'narr'],
+    'ch5-4': ['wayne-ch5-4', 'claude-ch5-4', 'narr'],
+    'ch5-5': ['claude-ch5-5', 'narr'],
+  };
   let voTok = 0, skipFn = null, paused = false;
   const vctl = document.getElementById('vctl'), voPause = document.getElementById('voPause');
   function setPaused(p) { paused = p; const show = p || !everPlayed; voPause.textContent = show ? '▶' : '❚❚'; voPause.setAttribute('aria-label', !everPlayed ? 'Play' : (p ? 'Resume' : 'Pause')); }
@@ -1379,9 +1386,11 @@ tr:last-child td{ border-bottom:0; }
     if (!cap) return;
     const tok = ++voTok, id = panelId();
     setPaused(false);
-    const claude = (CLAUDE_VO[id] || []).map(n => ({ kind: 'file', names: ['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'] }));
-    const narr = { kind: 'narr' };
-    const steps = NARRATION_FIRST.has(id) ? [narr, ...claude] : [...claude, narr];
+    const steps = (SEQ[id] || ['narr']).map(n => n === 'narr' ? { kind: 'narr' }
+      : { kind: 'file', names: ['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'] })
+      .filter(st => st.kind === 'narr' || st.names.some(f => VO_FILES.has(f.split('/').pop())));
+    // a panel that opens with spoken narration still unlocks the media player in this tap, for its later clips
+    if (steps.length && steps[0].kind === 'narr') unlockAudio(true);
     const go = (i) => {
       if (tok !== voTok) return;
       if (i >= steps.length) { skipFn = null; return; }
@@ -1432,7 +1441,6 @@ tr:last-child td{ border-bottom:0; }
   vctl.hidden = !voiceChk.checked;
   muteChk.addEventListener('change', () => {
     try { localStorage.setItem('cfp.mute', muteChk.checked ? '1' : '0'); } catch (e) {}
-    if (voiceChk.checked && !CLAUDE_VO[panelId()]) unlockAudio(true);
     vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked);
     if (voiceChk.checked) speakCurrent(); else stopSpeech();
   });

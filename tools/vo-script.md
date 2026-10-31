@@ -97,3 +97,40 @@ Three places to stay in Nye Beach, five places to eat, and five things to see. S
 ## claude-ch5-5 — ch5-5 · One trip, Verify
 Two things to look at. The sources disagree on Thursday's ceiling at Newport. And with the fuel stop at Redding, you'd arrive just as the strattus moves in. I can move both Friday legs earlier.
 
+
+---
+
+# Wayne's typed prompts (spoken as chat bubbles)
+
+Record these like the narration, as you'd type them to Claude. Name each file as shown (.m4a or .mp3) and send them; they get the ding, bubble voice and send sound when committed, and play before Claude answers.
+
+## wayne-ch3-5 — Connect, Test
+Let's try the connection to ForeFlight.
+
+## wayne-ch4-1 — Logbook, Totals
+Summarize my logbook by year: total hours, cross-country, and approaches.
+
+## wayne-ch5-1 — One trip, Check
+Let's try the connection to ForeFlight.
+
+## wayne-ch5-2 — One trip, Research
+I'm thinking about a weekend trip to the Pacific coast of Oregon sometime in the next few weeks. What do things look like in terms of airports and possible weather?
+
+## wayne-ch5-3 — One trip, Plan
+Yes, pls.
+
+## wayne-ch5-4 — One trip, Stay & eat
+For the overnights in Newport, please find three possible Airbnbs, a couple of eateries for lunch and dinner, and maybe some sights to see or things to do.
+
+---
+
+# Order on each panel
+
+- Connect, Test: narration, then your prompt, then Claude
+- Logbook, Totals; One trip, Research; One trip, Stay & eat: your prompt, Claude, narration
+- One trip, Check: your prompt, narration
+- One trip, Plan: Claude's offer, your "Yes, pls.", Claude's "Both are set up", narration
+- One trip, Verify: Claude, narration
+- Every other panel: narration only
+
+Raw recordings go in `tools/vo-raw/`; `python3 tools/build_vo.py` builds `site/media/vo/` and the file list.
