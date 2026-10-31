@@ -60,7 +60,10 @@ body{
 }
 .btn:hover{ color:var(--amber); border-color:var(--amber); }
 .btn:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; }
-.btn.primary{ color:var(--amber); border-color:var(--amber-dim); background:rgba(245,166,35,0.08); }
+.btn.primary{ color:var(--amber); border-color:var(--amber-dim); background:rgba(245,166,35,0.08); transition:color .3s ease, border-color .3s ease, background-color .3s ease; }
+/* Next turns solid amber once this panel's voices are done (or right away when muted) */
+#nextBtn.ready{ background:var(--amber); border-color:var(--amber); color:#1a1205; }
+#nextBtn.ready:hover{ filter:brightness(1.08); color:#1a1205; }
 .btn[disabled]{ opacity:.35; cursor:default; pointer-events:none; }
 
 .title-row{
@@ -466,7 +469,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.35</span>
+    <span class="ver mono">v0.36</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1228,6 +1231,7 @@ tr:last-child td{ border-bottom:0; }
     runToken++;
     const tok = runToken;
     stopSpeech();
+    setReady(!voiceChk.checked);   // muted: nothing to wait for
     if (el.classList.contains('scene')) playScene(el, tok);
     else if (el.closest('.chap') && el.closest('.chap').dataset.title === 'Logbook') { playLogbook(el, tok); loadMap(el); }
     else if (el === chaps[2]) playTools(tok);
@@ -1326,6 +1330,7 @@ tr:last-child td{ border-bottom:0; }
     const scope = subState.has(ch) ? ch.querySelectorAll(':scope > .sub')[subState.get(ch)] : ch;
     return scope.querySelector('.cap');
   }
+  function setReady(on) { nextBtn.classList.toggle('ready', !!on); }
   function stopSpeech() {
     voTok++;
     if (vo) { try { vo.pause(); } catch (e) {} vo = null; }
@@ -1338,6 +1343,8 @@ tr:last-child td{ border-bottom:0; }
   let vo = null;
   // Voice-over files that exist (kept by tools/update-vo-manifest.py), so the page never probes for missing ones.
   const VO_FILES = new Set(/*VO-MANIFEST*/["ch0.m4a", "ch1.m4a", "ch2.m4a", "ch3-1.m4a", "ch3-2.m4a", "ch3-3.m4a", "ch3-4.m4a", "ch3-5.m4a", "ch4-1.m4a", "ch4-2.m4a", "ch5-1.m4a", "ch5-2.m4a", "ch5-3.m4a", "ch5-4.m4a", "ch5-5.m4a", "ch6.m4a", "ch7.m4a", "claude-ch5-1.m4a", "claude-ch5-2.m4a", "claude-ch5-3a.m4a", "claude-ch5-5.m4a", "ding.m4a", "send.m4a", "wayne-ch3-5.m4a", "wayne-ch4-1.m4a", "wayne-ch5-1.m4a", "wayne-ch5-2.m4a", "wayne-ch5-2b.m4a", "wayne-ch5-3.m4a", "wayne-ch5-4.m4a"]/*END*/);
+  // seconds into each music-bed narration file where the voice ends (written by tools/build_vo.py)
+  const VO_VOICE_END = /*VO-VOICE-END*/{"ch0": 23.17, "ch1": 14.97, "ch7": 10.6}/*END*/;
   // iOS plays audio only on an element first started from a tap, so one element is reused for every clip.
   const player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', '');
   const SILENCE = 'data:audio/wav;base64,UklGRtQEAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbAEAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
@@ -1423,7 +1430,7 @@ tr:last-child td{ border-bottom:0; }
     if (steps.length && steps[0].kind === 'wait') unlockAudio();
     const go = (i) => {
       if (tok !== voTok) return;
-      if (i >= steps.length) { skipFn = null; return; }
+      if (i >= steps.length) { skipFn = null; setReady(true); return; }
       const st = steps[i];
       if (st.kind === 'wait') { const t = setTimeout(() => go(i + 1), reduce ? 0 : st.ms); skipFn = () => { clearTimeout(t); go(i + 1); }; return; }
       if (st.kind === 'file') { playFile(st.names, tok).then(() => go(i + 1)); return; }
@@ -1438,7 +1445,10 @@ tr:last-child td{ border-bottom:0; }
       const files = ['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'];
       if (files.some(f => VO_FILES.has(f.split('/').pop()))) {
         cap.classList.add('speaking');
-        playFile(files, tok).then(() => { cap.classList.remove('speaking'); go(i + 1); });
+        // narration with a music tail (Start, Why, Wrap-up): the voice is done at VO_VOICE_END, before the file ends
+        const vEnd = VO_VOICE_END[id], onT = () => { if (tok === voTok && player.currentTime >= vEnd && i === steps.length - 1) { setReady(true); player.removeEventListener('timeupdate', onT); } };
+        if (vEnd) player.addEventListener('timeupdate', onT);
+        playFile(files, tok).then(() => { player.removeEventListener('timeupdate', onT); cap.classList.remove('speaking'); go(i + 1); });
       } else {
         skipFn = () => { if (synth) synth.cancel(); };   // speakSynth's end handler (or its poll) moves on
         speakSynth(cap, () => go(i + 1));
@@ -1492,7 +1502,7 @@ tr:last-child td{ border-bottom:0; }
   muteChk.addEventListener('change', () => {
     try { localStorage.setItem('cfp.mute', muteChk.checked ? '1' : '0'); } catch (e) {}
     vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked);
-    if (voiceChk.checked) speakCurrent(); else stopSpeech();
+    if (voiceChk.checked) { setReady(false); speakCurrent(); } else { stopSpeech(); setReady(true); }
   });
   function choose(sound) {
     chosen = true; gestured = true;
@@ -1500,6 +1510,7 @@ tr:last-child td{ border-bottom:0; }
     muteChk.checked = !sound;
     try { localStorage.setItem('cfp.mute', sound ? '0' : '1'); } catch (e) {}
     vctl.hidden = !sound; document.body.classList.toggle('reading', sound);
+    setReady(!sound);
     if (sound) speakCurrent(); else stopSpeech();   // synchronously, inside the tap
     (sound ? voPause : nextBtn).focus({ preventScroll: true });
   }

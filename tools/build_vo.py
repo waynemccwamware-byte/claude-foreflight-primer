@@ -185,7 +185,7 @@ def add_music(voice_m4a, tmp, pre, offset, hold, fade):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as td:
-        tmp = pathlib.Path(td); make_fx(tmp); music_end = {}
+        tmp = pathlib.Path(td); make_fx(tmp); music_end = {}; voice_end = {}
         for fx in ('ding', 'send'):   # also published on their own, for bubbles read by the browser voice
             ff('-i', str(tmp / (fx + '.wav')), '-c:a', 'aac', '-b:a', '96k', str(OUT / (fx + '.m4a')))
         for src in sorted(RAW.iterdir()):
@@ -198,9 +198,14 @@ def main():
                 if name in MUSIC_ON:
                     c = dict(MUSIC_ON[name])
                     if c['offset'] is None: c['offset'] = music_end.get('ch0', 0.0) + 2.0
-                    music_end[name] = c['offset'] + add_music(OUT / (name + '.m4a'), tmp, **c)
+                    v_end = add_music(OUT / (name + '.m4a'), tmp, **c)
+                    music_end[name] = c['offset'] + v_end; voice_end[name] = round(v_end + PAD, 2)
                 print('narration', name)
-    if 'VO_OUT' not in os.environ:
+    if 'VO_OUT' not in os.environ:   # a preview build elsewhere leaves the page alone
+        import json, re
+        page = ROOT / 'site/index.html'; html = page.read_text()
+        html = re.sub(r'/\*VO-VOICE-END\*/.*?/\*END\*/', lambda _: '/*VO-VOICE-END*/' + json.dumps(voice_end) + '/*END*/', html, flags=re.S)
+        page.write_text(html)
         subprocess.run([sys.executable, str(ROOT / 'tools/update-vo-manifest.py')], check=True)
 
 if __name__ == '__main__':
