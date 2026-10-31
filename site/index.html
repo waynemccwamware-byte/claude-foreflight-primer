@@ -1353,14 +1353,13 @@ tr:last-child td{ border-bottom:0; }
   // claude-* = Claude (Reed), both as chat-bubble clips (ding, bubble voice, send) built by tools/build_vo.py.
   // Files not recorded yet are skipped (VO_FILES). Panels not listed play the narration only.
   const SEQ = {
-    // Claude's voice is for Claude's questions and offers, not for reading back a report (Wayne, 31-Oct-2026)
+    // Claude's voice speaks only what appears in a Claude chat bubble on screen (Wayne, 31-Oct-2026)
     'ch3-5': ['narr', 'wayne-ch3-5'],   // narration first: it tells you what to ask
     'ch4-1': ['wayne-ch4-1', 'narr'],
     'ch5-1': ['wayne-ch5-1', 'narr'],
-    'ch5-2': ['wayne-ch5-2', 'claude-ch5-2', 'narr'],
-    'ch5-3': ['claude-ch5-3a', 'wayne-ch5-3', 'claude-ch5-3b', 'narr'],
-    'ch5-4': ['wayne-ch5-4', 'claude-ch5-4', 'narr'],
-    'ch5-5': ['claude-ch5-5', 'narr'],
+    'ch5-2': ['wayne-ch5-2', 'narr'],
+    'ch5-3': ['claude-ch5-3a', 'wayne-ch5-3', 'narr'],
+    'ch5-4': ['wayne-ch5-4', 'narr'],
   };
   let voTok = 0, skipFn = null, paused = false;
   const vctl = document.getElementById('vctl'), voPause = document.getElementById('voPause');
