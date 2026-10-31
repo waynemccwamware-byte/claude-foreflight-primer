@@ -73,7 +73,7 @@ Fourteen years of logbook, summarized by Claude from one question.
 
 ### `ch4-2.m4a` — Logbook · B · Map
 
-I asked Claude for every airport in my ForeFlight logbook, departures, destinations and route waypoints, and Claude built this map. Here it zooms to Newport, Oregon, then to San Pedro de la Cueva in Sonora, Mexico.
+I asked Claude for every airport in my ForeFlight logbook, departures, destinations and tech stops, and Claude built this map. Here it zooms to Newport, Oregon, then to San Pedro de la Cueva in Sonora, Mexico.
 
 ### `ch5-1.m4a` — One trip · 1 · Check
 
