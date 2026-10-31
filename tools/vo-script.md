@@ -83,7 +83,7 @@ The ForeFlight connection is live. You have forty-four saved aircraft, and Novem
 Here's your logbook by year. Three thousand two hundred fifty hours since twenty thirteen, with seven hundred twenty-two approaches.
 
 ## claude-ch5-2 — ch5-2 · One trip, Research
-Here are six airports along the Oregon coast, with runway lengths, one hundred low lead prices, and notes from other pilots. Thursday and Friday morning look best. Stratus moves in Friday afternoon, ceilings near three hundred feet, and rain arrives Sunday night.
+Here are six airports along the Oregon coast, with runway lengths, one hundred low led prices (spelled "led" so Reed says it like the metal), and notes from other pilots. Thursday and Friday morning look best. Stratus moves in Friday afternoon, ceilings near three hundred feet, and rain arrives Sunday night.
 
 ## claude-ch5-3a — ch5-3 · One trip, Plan
 If you'd like, I can save the Friday zero niner hundred, Sunday zero eight hundred pair as a Plane W X trip, or draft the flight in ForeFlight with a fuel stop. Redding would be the natural midpoint.

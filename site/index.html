@@ -135,6 +135,9 @@ svg{ display:block; max-width:100%; height:auto; }
 .nav .mid{ display:flex; gap:8px; align-items:center; }
 .voice{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); cursor:pointer; user-select:none; }
 .voice input{ accent-color:var(--amber); }
+.vctl{ display:inline-flex; gap:6px; }
+.vbtn{ width:34px; height:30px; border-radius:6px; border:1px solid var(--bezel-hi); background:transparent; color:var(--text-muted); cursor:pointer; font:600 12px 'IBM Plex Sans', sans-serif; }
+.vbtn:hover, .vbtn:focus-visible{ color:var(--amber); border-color:var(--amber); outline:none; }
 
 /* try-in-claude */
 .try{
@@ -446,7 +449,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.14</span>
+    <span class="ver mono">v0.15</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -947,7 +950,8 @@ tr:last-child td{ border-bottom:0; }
     <div class="nav">
       <button class="btn" id="prevBtn" type="button">← Back</button>
       <div class="mid">
-        <label class="voice" id="voiceWrap" title="Preview voice: your browser's built-in speech"><input type="checkbox" id="voiceChk"> Read aloud</label>
+        <label class="voice" id="voiceWrap"><input type="checkbox" id="voiceChk"> Read aloud</label>
+        <span class="vctl" id="vctl" hidden><button class="vbtn" id="voPause" type="button" aria-label="Pause">❚❚</button><button class="vbtn" id="voSkip" type="button" aria-label="Skip to next">⏭</button></span>
       </div>
       <button class="btn primary" id="nextBtn" type="button">Next →</button>
     </div>
@@ -1281,36 +1285,57 @@ tr:last-child td{ border-bottom:0; }
     const ch = chaps[ci];
     return 'ch' + ci + (subState.has(ch) ? '-' + (subState.get(ch) + 1) : '');
   }
-  // Claude's voice (Reed): media/vo/claude-<panel>[a|b].m4a, played after the narration on that panel
+  // Claude's voice (Reed): media/vo/claude-<panel>[a|b].m4a. Claude speaks first, then the narration,
+  // except on Connect step 5, where the narration tells you what to ask before Claude answers.
   const CLAUDE_VO = { 'ch3-5':['claude-ch3-5'], 'ch4-1':['claude-ch4-1'], 'ch5-2':['claude-ch5-2'],
     'ch5-3':['claude-ch5-3a','claude-ch5-3b'], 'ch5-4':['claude-ch5-4'], 'ch5-5':['claude-ch5-5'] };
-  let voTok = 0;
-  function playFile(names, tok) {   // try each candidate URL in turn; resolve true if one played to the end
+  const NARRATION_FIRST = new Set(['ch3-5']);
+  let voTok = 0, skipFn = null, paused = false;
+  const vctl = document.getElementById('vctl'), voPause = document.getElementById('voPause');
+  function setPaused(p) { paused = p; voPause.textContent = p ? '▶' : '❚❚'; voPause.setAttribute('aria-label', p ? 'Resume' : 'Pause'); }
+  function playFile(names, tok) {   // resolve 'done' | 'missing' | 'skipped'
     return new Promise(res => {
       const next = (i) => {
-        if (i >= names.length || tok !== voTok) return res(false);
+        if (i >= names.length || tok !== voTok) return res('missing');
         const a = new Audio(names[i]); vo = a;
-        a.onended = () => res(true);
+        skipFn = () => { try { a.pause(); } catch (e) {} res('skipped'); };
+        a.onended = () => res('done');
         a.onerror = () => next(i + 1);
-        a.play().catch(() => next(i + 1));
+        a.play().then(() => { if (paused) a.pause(); }).catch(() => next(i + 1));
       };
       next(0);
     });
   }
-  async function speakCurrent() {
-    const cap = currentCap();
-    if (!cap) return;
-    const tok = ++voTok, id = panelId();
+  async function playNarration(cap, id, tok) {
     cap.classList.add('speaking');
-    const narr = await playFile(['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'], tok);
-    if (tok !== voTok) return;
-    if (!narr) { await new Promise(r => speakSynth(cap, r)); if (tok !== voTok) return; }
+    const r = await playFile(['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'], tok);
+    if (r === 'missing' && tok === voTok) await new Promise(res => { skipFn = () => { if (synth) synth.cancel(); res(); }; speakSynth(cap, res); });
     cap.classList.remove('speaking');
+  }
+  async function playClaude(id, tok) {
     for (const n of (CLAUDE_VO[id] || [])) {
       if (tok !== voTok) return;
       await playFile(['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'], tok);
     }
   }
+  async function speakCurrent() {
+    const cap = currentCap();
+    if (!cap) return;
+    const tok = ++voTok, id = panelId();
+    setPaused(false);
+    if (NARRATION_FIRST.has(id)) { await playNarration(cap, id, tok); if (tok === voTok) await playClaude(id, tok); }
+    else { await playClaude(id, tok); if (tok === voTok) await playNarration(cap, id, tok); }
+    if (tok === voTok) skipFn = null;
+  }
+  voPause.addEventListener('click', () => {
+    if (!paused) { setPaused(true); if (vo) try { vo.pause(); } catch (e) {} if (synth && synth.speaking) synth.pause(); }
+    else { setPaused(false); if (vo && !vo.ended) vo.play().catch(() => {}); if (synth && synth.paused) synth.resume(); }
+  });
+  // Skip: next clip on this panel; after the panel's last clip, the next panel
+  document.getElementById('voSkip').addEventListener('click', () => {
+    setPaused(false);
+    if (skipFn) { const f = skipFn; skipFn = null; f(); } else step(1);
+  });
   function speakSynth(cap, done) {
     done = done || (() => {});
     if (!synth || !cap) { done(); return; }
@@ -1322,7 +1347,7 @@ tr:last-child td{ border-bottom:0; }
     cap.classList.add('speaking');
     synth.speak(u);
   }
-  voiceChk.addEventListener('change', () => { if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
+  voiceChk.addEventListener('change', () => { vctl.hidden = !voiceChk.checked; if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
 
   // SVG SMIL animations: pause under reduced motion
   if (reduce) document.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });

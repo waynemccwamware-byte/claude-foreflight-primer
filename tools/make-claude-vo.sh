@@ -11,7 +11,7 @@ make() {
 }
 make claude-ch3-5 "The ForeFlight connection is live. You have forty-four saved aircraft, and November two one one whiskey papa, your Diamond D A forty, is the primary. One thing to look at: November four five one romeo kilo appears twice, with different settings."
 make claude-ch4-1 "Here's your logbook by year. Three thousand two hundred fifty hours since twenty thirteen, with seven hundred twenty-two approaches."
-make claude-ch5-2 "Here are six airports along the Oregon coast, with runway lengths, one hundred low lead prices, and notes from other pilots. Thursday and Friday morning look best. Stratus moves in Friday afternoon, ceilings near three hundred feet, and rain arrives Sunday night."
+make claude-ch5-2 "Here are six airports along the Oregon coast, with runway lengths, one hundred low led prices, and notes from other pilots. Thursday and Friday morning look best. Stratus moves in Friday afternoon, ceilings near three hundred feet, and rain arrives Sunday night."
 make claude-ch5-3a "If you'd like, I can save the Friday zero niner hundred, Sunday zero eight hundred pair as a Plane W X trip, or draft the flight in ForeFlight with a fuel stop. Redding would be the natural midpoint."
 make claude-ch5-3b "Both are set up. Four flights are now in ForeFlight, in November two one one whiskey papa, with your weight and balance profile."
 make claude-ch5-4 "Three places to stay in Nye Beach, five places to eat, and five things to see. Save the aquarium for a foggy morning, and the headlands for when it clears."
