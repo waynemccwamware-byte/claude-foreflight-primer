@@ -240,10 +240,15 @@ svg{ display:block; max-width:100%; height:auto; }
 /* chat replay (ch4) */
 .chat{ display:flex; flex-direction:column; gap:10px; min-height:280px; }
 .you{
-  align-self:flex-end; max-width:86%; background:#2a3240; border-radius:12px 12px 2px 12px;
+  align-self:flex-end; max-width:86%; background:#2a3240; border-radius:12px;
   padding:9px 12px; font-size:13.5px; line-height:1.5; min-height:38px;
   border:1.5px solid rgba(245,166,35,.75); box-shadow:0 0 12px rgba(245,166,35,.12);
 }
+.you.note{ border-style:dashed; border-color:rgba(139,147,161,.7); box-shadow:none; color:var(--text-muted); font-style:italic; }
+.cl{ align-self:flex-start; max-width:86%; background:#1b222c; border:1.5px solid rgba(63,167,160,.55); border-radius:12px; padding:9px 12px; font-size:13.5px; line-height:1.5;
+  opacity:0; transform:translateY(6px); transition:opacity .4s ease, transform .4s ease; }
+.cl.in{ opacity:1; transform:none; }
+.cl .who{ display:block; font:600 10.5px 'IBM Plex Mono', monospace; color:var(--teal); letter-spacing:.06em; text-transform:uppercase; margin-bottom:2px; }
 .you .caret{ display:inline-block; width:7px; height:15px; background:var(--amber); vertical-align:-2px; margin-left:2px; animation:blink 1s steps(1) infinite; }
 @keyframes blink{ 50%{ opacity:0; } }
 .chips{ display:flex; flex-wrap:wrap; gap:6px; }
@@ -361,7 +366,7 @@ tr:last-child td{ border-bottom:0; }
 .ledger{ position:relative; display:grid; gap:8px; }
 .lrow{ display:grid; grid-template-columns:minmax(0,1fr) 22px minmax(0,1.1fr); align-items:center; gap:8px; opacity:0; transform:translateX(-14px); transition:opacity .45s ease, transform .45s ease; }
 .lrow.in{ opacity:1; transform:none; }
-.lyou{ border:1.5px solid rgba(245,166,35,.75); background:rgba(42,50,64,.82); border-radius:10px 10px 2px 10px; padding:8px 10px; font-size:12.5px; line-height:1.45; }
+.lyou{ border:1.5px solid rgba(245,166,35,.75); background:rgba(42,50,64,.82); border-radius:10px; padding:8px 10px; font-size:12.5px; line-height:1.45; }
 .lyou em{ display:block; font-style:normal; font:500 10.5px 'IBM Plex Mono', monospace; color:var(--text-muted); margin-top:3px; }
 .larrow{ color:var(--amber); font-size:18px; text-align:center; }
 .lgot{ border:1px solid var(--bezel); background:rgba(21,27,35,.72); border-radius:10px; padding:8px 10px; font-size:12.8px; line-height:1.45; }
@@ -441,7 +446,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.12</span>
+    <span class="ver mono">v0.13</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -795,8 +800,9 @@ tr:last-child td{ border-bottom:0; }
       <!-- Scene 3 -->
       <div class="sub scene" data-label="3 · Plan">
         <div class="stage chat">
+          <div class="cl"><span class="who">Claude</span>…If you'd like, I can save the Friday 09:00 / Sunday 08:00 pair as a PlaneWX trip, or draft the flight in ForeFlight with a fuel stop. KMHS or KRDD would be the natural midpoints.</div>
           <div class="you" data-type="Yes, pls."></div>
-          <div class="chips"><span class="chip other">PlaneWX · departure windows</span><span class="chip">ForeFlight · create_flight_plan ×4</span></div>
+          <div class="chips"><span class="chip other">PlaneWX · save trips ×2</span><span class="chip">ForeFlight · create_flight_plan ×4</span></div>
           <div class="ans">
             <p class="small" style="margin:0">PlaneWX (a separate connector) scored Friday 09:00 out WX Score 95, Favorable, data confidence 80, Good. Then Claude built the trip in ForeFlight:</p>
             <div class="route-wrap">
@@ -871,7 +877,7 @@ tr:last-child td{ border-bottom:0; }
       <!-- Scene 5 -->
       <div class="sub scene" data-label="5 · Verify">
         <div class="stage chat">
-          <div class="you" data-type="(Claude flagged these without being asked.)"></div>
+          <div class="you note" data-type="(Claude flagged these without being asked.)"></div>
           <div class="ans">
             <div class="note"><b>Sources disagreed.</b> PlaneWX graded a 200–900 ft ceiling at KONP Thursday from one MOS run; ForeFlight's MOS showed FEW/SCT clouds, not a ceiling, and its daily outlook showed sunny. Claude said to re-brief once a TAF covered Thursday.</div>
             <div class="note"><b>Tight timing.</b> With the KRDD fuel stop, arrival at KONP would be about 14:45–15:00 Friday, right when the hourly model brought in stratus near 300 ft. Claude offered to move both Friday legs earlier.</div>
@@ -1092,8 +1098,12 @@ tr:last-child td{ border-bottom:0; }
     sc.querySelectorAll('.fcard, .titem').forEach(c => c.classList.remove('in'));
     sc.querySelectorAll('.leg-path').forEach(p => { p.classList.remove('drawn'); void p.getBoundingClientRect(); });
     if (sc.querySelector('#wxStrip')) wxEl.innerHTML = '';
+    const cls = [...sc.querySelectorAll('.cl')];
+    cls.forEach(c => c.classList.remove('in'));
     const you = sc.querySelector('.you');
-    if (you) { you.textContent = ''; await sleep(300); await typeInto(you, tok); }
+    if (you) you.textContent = '';
+    for (const c of cls) { await sleep(300); if (!alive(tok)) return; c.classList.add('in'); await sleep(900); }
+    if (you) { await sleep(300); await typeInto(you, tok); }
     for (const c of sc.querySelectorAll('.chip')) { if (!alive(tok)) return; await sleep(350); c.classList.add('in'); }
     await sleep(450);
     if (!ans) return;
