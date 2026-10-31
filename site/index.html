@@ -143,6 +143,7 @@ svg{ display:block; max-width:100%; height:auto; }
 .voice{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); cursor:pointer; user-select:none; }
 .voice input{ accent-color:var(--amber); }
 .vctl{ display:inline-flex; gap:6px; }
+.vctl[hidden]{ display:none; }
 body.reading .cap{ display:none; }
 .vbtn{ width:34px; height:30px; border-radius:6px; border:1px solid var(--bezel-hi); background:transparent; color:var(--text-muted); cursor:pointer; font:600 12px 'IBM Plex Sans', sans-serif; }
 .vbtn:hover, .vbtn:focus-visible{ color:var(--amber); border-color:var(--amber); outline:none; }
@@ -457,7 +458,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.21</span>
+    <span class="ver mono">v0.22</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
