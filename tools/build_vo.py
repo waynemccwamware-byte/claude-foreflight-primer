@@ -6,7 +6,7 @@ tools/vo-raw/  raw recordings, not published:
   claude-*.m4a     Claude (Reed) bubble -> ding + bubble voice + send
   wayne-*.m4a|mp3  Wayne's typed prompt -> ding + bubble voice + send
 Bubble voice: 80% of the clean level, 300-3400 Hz band, light compression, faint pink-noise bed (approved 31-Oct-2026).
-Ding: the ATC Chair-Fly Trainer's two notes (880 Hz, then 1318.5 Hz, sine). Send: a Return-key click (down + up), half volume.
+Ding: the ATC Chair-Fly Trainer's two notes (880 Hz, then 1318.5 Hz, sine). Send: a Return-key click (down + up), quiet.
 Writes site/media/vo/<name>.m4a, then refreshes the VO_FILES list in site/index.html.
 """
 import os, subprocess, sys, tempfile, wave, pathlib
@@ -50,7 +50,7 @@ def make_fx(tmp):
     send = np.zeros(int(SR * 0.3))
     send = place(send, click(0.5, 180, 0.35), 0.10)
     send = place(send, click(0.28, 240, 0.15), 0.185)
-    send *= 0.35
+    send *= 0.21   # 0.35 cut by 40% (31-Oct-2026)
     save(tmp / 'send.wav', send)
 
 def ff(*args):
