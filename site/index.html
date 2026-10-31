@@ -144,6 +144,12 @@ svg{ display:block; max-width:100%; height:auto; }
 .voice input{ accent-color:var(--amber); }
 .vctl{ display:inline-flex; gap:6px; }
 .vctl[hidden]{ display:none; }
+.start{ margin-top:14px; padding:14px; border:1px solid var(--amber-dim); border-radius:10px; background:rgba(245,166,35,.06); text-align:center; }
+.start[hidden], .nav[hidden]{ display:none; }
+.start-t{ margin:0 0 10px; font-size:15px; font-weight:600; }
+.start-b{ display:flex; flex-wrap:wrap; justify-content:center; gap:10px; }
+.start-b .btn{ font-size:14px; padding:12px 18px; flex:1 1 180px; max-width:260px; }
+.start-play{ animation:invite 1.6s ease-in-out infinite; }
 .vbtn.invite{ color:var(--amber); border-color:var(--amber); animation:invite 1.6s ease-in-out infinite; }
 @keyframes invite{ 0%,100%{ box-shadow:0 0 0 0 rgba(245,166,35,.5);} 50%{ box-shadow:0 0 0 6px rgba(245,166,35,0);} }
 body.reading .cap{ display:none; }
@@ -460,7 +466,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.24</span>
+    <span class="ver mono">v0.25</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -958,7 +964,14 @@ tr:last-child td{ border-bottom:0; }
       <p class="cap" data-say>That's the whole trip: four prompts, about sixty words from me, and Claude did the legwork across ForeFlight and PlaneWX. The value? Your time.</p>
     </section>
 
-    <div class="nav">
+    <div class="start" id="startGate" hidden>
+      <p class="start-t">Start the primer</p>
+      <div class="start-b">
+        <button class="btn primary start-play" id="startPlay" type="button">▶ Play with sound</button>
+        <button class="btn" id="startQuiet" type="button">Read without sound</button>
+      </div>
+    </div>
+    <div class="nav" id="navRow">
       <button class="btn" id="prevBtn" type="button">← Back</button>
       <div class="mid">
         <label class="voice" id="voiceWrap"><input type="checkbox" id="muteChk"> Mute</label>
@@ -993,7 +1006,12 @@ tr:last-child td{ border-bottom:0; }
   try { muteChk.checked = localStorage.getItem('cfp.mute') === '1'; } catch (e) {}
   const voiceChk = { get checked() { return !muteChk.checked; } };   // "audio on"
   document.body.classList.toggle('reading', voiceChk.checked);
-  let everPlayed = false, gestured = false;   // browsers start sound only after a tap; until then ▶ invites one
+  let everPlayed = false, gestured = false;
+  // Start gate: until the viewer picks sound or no sound, the choice replaces the nav row and navigation waits.
+  // A viewer who muted last time opens muted, with no gate.
+  let chosen = muteChk.checked;
+  const startGate = document.getElementById('startGate'), navRow = document.getElementById('navRow');
+  startGate.hidden = chosen; navRow.hidden = !chosen;   // browsers start sound only after a tap; until then ▶ invites one
   let ci = 0;
   let runToken = 0;
 
@@ -1185,7 +1203,7 @@ tr:last-child td{ border-bottom:0; }
     subs.forEach((s, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = s.dataset.label; b.setAttribute('role', 'tab');
-      b.addEventListener('click', () => showSub(ch, i));
+      b.addEventListener('click', () => { if (chosen) showSub(ch, i); });
       bar.appendChild(b);
     });
     subState.set(ch, 0);
@@ -1209,7 +1227,7 @@ tr:last-child td{ border-bottom:0; }
     else if (el.closest('.chap') && el.closest('.chap').dataset.title === 'Logbook') { playLogbook(el, tok); loadMap(el); }
     else if (el === chaps[2]) playTools(tok);
     else if (el.dataset && el.dataset.title === 'Wrap-up') playWrap(el, tok);
-    if (voiceChk.checked && gestured) speakCurrent();   // no attempt before the first tap: a blocked attempt can leave speech stuck
+    if (voiceChk.checked && gestured && chosen) speakCurrent();   // no attempt before the first tap: a blocked attempt can leave speech stuck
   }
 
   // ---- chapters ----
@@ -1218,7 +1236,7 @@ tr:last-child td{ border-bottom:0; }
     b.type = 'button';
     b.innerHTML = '<span>' + ch.dataset.title + '</span>';
     b.setAttribute('aria-label', 'Chapter ' + i + ': ' + ch.dataset.title);
-    b.addEventListener('click', () => showChap(i));
+    b.addEventListener('click', () => { if (chosen) showChap(i); });
     rail.appendChild(b);
   });
 
@@ -1244,6 +1262,7 @@ tr:last-child td{ border-bottom:0; }
   }
 
   function step(dir) {
+    if (!chosen) return;
     const ch = chaps[ci];
     if (subState.has(ch)) {
       const n = ch.querySelectorAll(':scope > .sub').length, si = subState.get(ch) + dir;
@@ -1279,6 +1298,7 @@ tr:last-child td{ border-bottom:0; }
 
   document.querySelectorAll('.replay').forEach(b => b.addEventListener('click', () => run(b.closest('.sub'))));
   document.querySelectorAll('[data-jump]').forEach(b => b.addEventListener('click', () => {
+    if (!chosen) return;
     const [c, s] = b.dataset.jump.split(':').map(Number);
     showChap(c, s);
     panel.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
@@ -1416,6 +1436,17 @@ tr:last-child td{ border-bottom:0; }
     vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked);
     if (voiceChk.checked) speakCurrent(); else stopSpeech();
   });
+  function choose(sound) {
+    chosen = true; gestured = true;
+    startGate.hidden = true; navRow.hidden = false;
+    muteChk.checked = !sound;
+    try { localStorage.setItem('cfp.mute', sound ? '0' : '1'); } catch (e) {}
+    vctl.hidden = !sound; document.body.classList.toggle('reading', sound);
+    if (sound) speakCurrent(); else stopSpeech();   // synchronously, inside the tap
+    (sound ? voPause : nextBtn).focus({ preventScroll: true });
+  }
+  document.getElementById('startPlay').addEventListener('click', () => choose(true));
+  document.getElementById('startQuiet').addEventListener('click', () => choose(false));
   player.addEventListener('playing', () => { if (player.src.indexOf('data:') !== 0) markPlayed(); });
   function markPlayed() { if (everPlayed) return; everPlayed = true; voPause.classList.remove('invite'); setPaused(paused); }
 
@@ -1426,7 +1457,8 @@ tr:last-child td{ border-bottom:0; }
   ['touchend', 'click', 'keydown'].forEach(t => document.addEventListener(t, (e) => {
     const first = !gestured; gestured = true;
     // taps that start speech themselves (Read aloud, Next/Back, rail, sub-steps, Pause/Skip) unlock by speaking
-    if (!voiceChk.checked || (e.target.closest && e.target.closest('#voiceWrap, .nav, .rail, .subs, .vctl'))) return;
+    if (!voiceChk.checked || (e.target.closest && e.target.closest('#voiceWrap, .nav, .start, .rail, .subs, .vctl'))) return;
+    if (!chosen) return;
     if (first && e.type !== 'keydown') { speakCurrent(); return; }   // first tap anywhere starts this panel
     unlockAudio();
   }, { passive: true, capture: true }));
