@@ -83,7 +83,7 @@ The ForeFlight connection is live. You have forty-four saved aircraft, and Novem
 Here's your logbook by year. Three thousand two hundred fifty hours since twenty thirteen, with seven hundred twenty-two approaches.
 
 ## claude-ch5-2 — ch5-2 · One trip, Research
-Here are six airports along the Oregon coast, with runway lengths, one hundred low led prices (spelled "led" so Reed says it like the metal), and notes from other pilots. Thursday and Friday morning look best. Stratus moves in Friday afternoon, ceilings near three hundred feet, and rain arrives Sunday night.
+Here are six airports along the Oregon coast, with runway lengths, one hundred low led prices (spelled "led" so Reed says it like the metal), and notes from other pilots. Thursday and Friday morning look best. Strattus (spelled so Reed uses a short "a") moves in Friday afternoon, ceilings near three hundred feet, and rain arrives Sunday night.
 
 ## claude-ch5-3a — ch5-3 · One trip, Plan
 If you'd like, I can save the Friday zero niner hundred, Sunday zero eight hundred pair as a Plane W X trip, or draft the flight in ForeFlight with a fuel stop. Redding would be the natural midpoint.
@@ -95,5 +95,5 @@ Both are set up. Four flights are now in ForeFlight, in November two one one whi
 Three places to stay in Nye Beach, five places to eat, and five things to see. Save the aquarium for a foggy morning, and the headlands for when it clears.
 
 ## claude-ch5-5 — ch5-5 · One trip, Verify
-Two things to look at. The sources disagree on Thursday's ceiling at Newport. And with the fuel stop at Redding, you'd arrive just as the stratus moves in. I can move both Friday legs earlier.
+Two things to look at. The sources disagree on Thursday's ceiling at Newport. And with the fuel stop at Redding, you'd arrive just as the strattus moves in. I can move both Friday legs earlier.
 
