@@ -68,7 +68,7 @@ Use Claude like a sharp copilot doing the research. Claude is fast, and usually 
 
 ## ch7.mp3 — Wrap-up
 
-That's the whole trip: four prompts, about sixty words from me, and Claude did the legwork across ForeFlight and PlaneWX. The value? Your time.
+The value? Your time… maybe minutes instead of hours.
 
 ---
 
@@ -122,7 +122,7 @@ For the overnights in Newport, please find three possible Airbnbs, a couple of e
 - Connect, Test: narration, your prompt
 - Logbook, Totals; One trip, Stay & eat: your prompt, narration
 - One trip, Check: your prompt, Claude's question, narration
-- One trip, Research: your prompt, Claude's question, your "Sure.", narration
+- One trip, Research: your prompt, narration, Claude's question, your "Sure."
 - One trip, Plan: Claude's offer, your "Yes, pls.", narration
 - One trip, Verify: Claude's offer, narration
 - Every other panel: narration only
