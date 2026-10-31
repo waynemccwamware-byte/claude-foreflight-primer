@@ -2,7 +2,7 @@
 """Build the primer's voice-over files from the raw recordings (needs ffmpeg and numpy; run in a Claude session).
 
 tools/vo-raw/  raw recordings, not published:
-  ch*.mp3|m4a|webm Wayne narrating (webm/ogg from the recorder page get converted)      -> copied as is (clean, full volume)
+  ch*.m4a|mp3|webm Wayne narrating -> head/tail silence trimmed to 0.4 s, leveled to -21 LUFS, AAC      -> copied as is (clean, full volume)
   claude-*.m4a     Claude (Reed) bubble -> ding + bubble voice + send
   wayne-*.m4a|mp3  Wayne's typed prompt -> ding + bubble voice + send
 Bubble voice: 80% of the clean level, 300-3400 Hz band, light compression, faint pink-noise bed (approved 31-Oct-2026).
@@ -52,10 +52,40 @@ def codec(src):
     r = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'a:0', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', str(src)], capture_output=True, text=True)
     return r.stdout.strip()
 
+NARR_LUFS, PAD = -21.0, 0.4   # narration sits ~2 dB above the bubble clips; keep 0.4 s of quiet at each end
+
+def narration(src, dst):
+    """Trim long head/tail silence to PAD, then level to NARR_LUFS (two-pass loudnorm), AAC .m4a."""
+    import json, re
+    log = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(src), '-af', 'silencedetect=n=-45dB:d=0.25', '-f', 'null', '-'],
+                         capture_output=True, text=True).stderr
+    dur = float(re.search(r'Duration: (\d+):(\d+):([\d.]+)', log).groups()[2]) + 60 * int(re.search(r'Duration: (\d+):(\d+)', log).group(2))
+    starts = [float(x) for x in re.findall(r'silence_start: (-?[\d.]+)', log)]
+    ends = [float(x) for x in re.findall(r'silence_end: ([\d.]+)', log)]
+    a = ends[0] if starts and starts[0] <= 0.01 and ends else 0.0
+    z = starts[-1] if starts and (len(starts) > len(ends) or ends[-1] >= dur - 0.05) else dur
+    a, z = max(0.0, a - PAD), min(dur, z + PAD)
+    trim = f'atrim={a:.3f}:{z:.3f},asetpts=PTS-STARTPTS,aformat=channel_layouts=mono'
+    ln = f'loudnorm=I={NARR_LUFS}:TP=-1.5:LRA=11'
+    m = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(src), '-af', f'{trim},{ln}:print_format=json', '-f', 'null', '-'],
+                       capture_output=True, text=True).stderr
+    j = json.loads(m[m.rindex('{'):m.rindex('}') + 1])
+    ff('-i', str(src), '-af', f"{trim},{ln}:measured_I={j['input_i']}:measured_TP={j['input_tp']}:measured_LRA={j['input_lra']}"
+       f":measured_thresh={j['input_thresh']}:offset={j['target_offset']}:linear=true,aresample=48000",
+       '-c:a', 'aac', '-b:a', '128k', str(dst))
+
+BUBBLE_IN_LUFS = -21.8   # the Reed recordings' level, which the bubble chain below was tuned on
+
+def lufs(src):
+    import re
+    e = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(src), '-af', 'ebur128', '-f', 'null', '-'], capture_output=True, text=True).stderr
+    return float(re.findall(r'I:\s+(-?[\d.]+) LUFS', e)[-1])
+
 def bubble(src, dst, tmp):
     v = tmp / 'v.wav'
+    gain = BUBBLE_IN_LUFS - lufs(src)   # bring every raw take (Wayne or Reed) to the same input level first
     ff('-i', str(src), '-f', 'lavfi', '-i', 'anoisesrc=color=pink:amplitude=0.012:sample_rate=44100', '-filter_complex',
-       '[0:a]aresample=44100,aformat=channel_layouts=mono,highpass=f=300,lowpass=f=3400,'
+       f'[0:a]aresample=44100,aformat=channel_layouts=mono,volume={gain:.2f}dB,highpass=f=300,lowpass=f=3400,'
        'acompressor=threshold=-18dB:ratio=3:attack=5:release=80,volume=5.9dB,volume=0.8[v];'
        '[1:a]highpass=f=200,lowpass=f=5000[n];[v][n]amix=inputs=2:duration=first:normalize=0[o]', '-map', '[o]', str(v))
     ff('-i', str(tmp / 'ding.wav'), '-i', str(v), '-i', str(tmp / 'send.wav'), '-filter_complex',
@@ -73,10 +103,7 @@ def main():
             if name.startswith(('claude-', 'wayne-')):
                 bubble(src, OUT / (name + '.m4a'), tmp); print('bubble ', name)
             else:
-                if src.suffix.lower() in ('.m4a', '.mp3') and codec(src) in ('aac', 'mp3'):
-                    ff('-i', str(src), '-c', 'copy', str(OUT / src.name))
-                else:   # wav/aiff/webm, or an .m4a holding Opus (Chrome's recorder): convert to AAC .m4a
-                    ff('-i', str(src), '-c:a', 'aac', '-b:a', '128k', str(OUT / (name + '.m4a')))
+                narration(src, OUT / (name + '.m4a'))
                 print('narration', name)
     subprocess.run([sys.executable, str(ROOT / 'tools/update-vo-manifest.py')], check=True)
 
