@@ -80,22 +80,36 @@ def denoise(src, tmp):
 NARR_LUFS, PAD = -21.0, 0.4   # narration sits ~2 dB above the bubble clips; keep 0.4 s of quiet at each end
 
 def trim_filter(src, pad):
-    """atrim filter that keeps `pad` seconds of quiet before the first and after the last sound."""
-    import re
-    log = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(src), '-af', 'silencedetect=n=-45dB:d=0.25', '-f', 'null', '-'],
-                         capture_output=True, text=True).stderr
-    dur = float(re.search(r'Duration: (\d+):(\d+):([\d.]+)', log).groups()[2]) + 60 * int(re.search(r'Duration: (\d+):(\d+)', log).group(2))
-    starts = [float(x) for x in re.findall(r'silence_start: (-?[\d.]+)', log)]
-    ends = [float(x) for x in re.findall(r'silence_end: ([\d.]+)', log)]
-    a = ends[0] if starts and starts[0] <= 0.01 and ends else 0.0
-    z = starts[-1] if starts and (len(starts) > len(ends) or ends[-1] >= dur - 0.05) else dur
+    """atrim filter keeping `pad` s of quiet around the speech. Speech = a run of >= 250 ms above (loud - 32 dB),
+    so a knock or click before the first word or after the last one is cut off."""
+    raw = subprocess.run(['ffmpeg', '-nostdin', '-loglevel', 'error', '-i', str(src), '-f', 'f32le', '-ac', '1', '-ar', '16000', '-'], capture_output=True).stdout
+    x = np.frombuffer(raw, np.float32); hop = 800; dur = len(x) / 16000
+    r = 20 * np.log10(np.sqrt((x[:len(x) // hop * hop].reshape(-1, hop) ** 2).mean(1)) + 1e-9)
+    act = r > np.percentile(r, 95) - 32
+    runs, k = [], 0
+    while k < len(act):
+        if act[k]:
+            j = k
+            while j < len(act) and act[j]: j += 1
+            runs.append((k, j)); k = j
+        else: k += 1
+    long = [(a, z) for a, z in runs if z - a >= 5] or runs or [(0, len(act))]
+    a = long[0][0] * hop / 16000
+    z = long[-1][1] * hop / 16000
+    s0, s1 = a, z
     a, z = max(0.0, a - pad), min(dur, z + pad)
-    return f'atrim={a:.3f}:{z:.3f},asetpts=PTS-STARTPTS,aformat=channel_layouts=mono'
+    # the pads are true silence: fade in over the last 80 ms before the first word, out over 200 ms after the last
+    fi = max(0.0, s0 - a - 0.08); fo = min(z - a, s1 - a + 0.05)
+    return (f'atrim={a:.3f}:{z:.3f},asetpts=PTS-STARTPTS,aformat=channel_layouts=mono,'
+            f'afade=t=in:st={fi:.3f}:d=0.08,afade=t=out:st={fo:.3f}:d=0.2')
+
+# Gentle gate for narration pauses (applied at -20 LUFS): leftover bumps under -38 dBFS are pulled down up to 15 dB.
+GATE = 'agate=threshold=0.0126:ratio=3:range=0.178:attack=5:release=250:knee=2'
 
 def narration(src, dst):
     """Trim long head/tail silence to PAD, then level to NARR_LUFS (two-pass loudnorm), AAC .m4a."""
     import json
-    trim = trim_filter(src, PAD)
+    trim = f'{trim_filter(src, PAD)},volume={-20 - lufs(src):.2f}dB,{GATE}'
     ln = f'loudnorm=I={NARR_LUFS}:TP=-1.5:LRA=11'
     m = subprocess.run(['ffmpeg', '-hide_banner', '-i', str(src), '-af', f'{trim},{ln}:print_format=json', '-f', 'null', '-'],
                        capture_output=True, text=True).stderr
