@@ -450,7 +450,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.16</span>
+    <span class="ver mono">v0.17</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1277,11 +1277,24 @@ tr:last-child td{ border-bottom:0; }
   function stopSpeech() {
     voTok++;
     if (vo) { try { vo.pause(); } catch (e) {} vo = null; }
+    player.onended = player.onerror = null;
     if (synth) synth.cancel();
     document.querySelectorAll('.cap.speaking').forEach(c => c.classList.remove('speaking'));
   }
   // Voice-over: media/vo/<panel>.mp3 (ch0, ch1, ch3-1 … ch5-5, ch7) plays if present; else the browser voice
   let vo = null;
+  // Voice-over files that exist (kept by tools/update-vo-manifest.py), so the page never probes for missing ones.
+  const VO_FILES = new Set(/*VO-MANIFEST*/["claude-ch3-5.m4a", "claude-ch4-1.m4a", "claude-ch5-2.m4a", "claude-ch5-3a.m4a", "claude-ch5-3b.m4a", "claude-ch5-4.m4a", "claude-ch5-5.m4a"]/*END*/);
+  // iOS plays audio only on an element first started from a tap, so one element is reused for every clip.
+  const player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', '');
+  const SILENCE = 'data:audio/wav;base64,UklGRtQEAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbAEAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
+  let unlocked = false;
+  function unlockAudio() {
+    if (unlocked) return;
+    unlocked = true;
+    try { player.src = SILENCE; const p = player.play(); if (p) p.catch(() => {}); } catch (e) {}
+    try { if (synth) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } } catch (e) {}
+  }
   function panelId() {
     const ch = chaps[ci];
     return 'ch' + ci + (subState.has(ch) ? '-' + (subState.get(ch) + 1) : '');
@@ -1296,15 +1309,17 @@ tr:last-child td{ border-bottom:0; }
   function setPaused(p) { paused = p; voPause.textContent = p ? '▶' : '❚❚'; voPause.setAttribute('aria-label', p ? 'Resume' : 'Pause'); }
   function playFile(names, tok) {   // resolve 'done' | 'missing' | 'skipped'
     return new Promise(res => {
-      const next = (i) => {
-        if (i >= names.length || tok !== voTok) return res('missing');
-        const a = new Audio(names[i]); vo = a;
-        skipFn = () => { try { a.pause(); } catch (e) {} res('skipped'); };
-        a.onended = () => res('done');
-        a.onerror = () => next(i + 1);
-        a.play().then(() => { if (paused) a.pause(); }).catch(() => next(i + 1));
-      };
-      next(0);
+      const name = names.find(n => VO_FILES.has(n.split('/').pop()));
+      if (!name || tok !== voTok) return res('missing');
+      let settled = false;
+      const fin = (r) => { if (settled) return; settled = true; player.onended = player.onerror = null; res(r); };
+      vo = player;
+      skipFn = () => { try { player.pause(); } catch (e) {} fin('skipped'); };
+      player.onended = () => fin('done');
+      player.onerror = () => fin('missing');
+      player.src = name;
+      const p = player.play();
+      if (p) p.then(() => { if (paused) player.pause(); }).catch(() => fin('missing'));
     });
   }
   async function playNarration(cap, id, tok) {
@@ -1329,6 +1344,7 @@ tr:last-child td{ border-bottom:0; }
     if (tok === voTok) skipFn = null;
   }
   voPause.addEventListener('click', () => {
+    unlockAudio();
     if (!paused) { setPaused(true); if (vo) try { vo.pause(); } catch (e) {} if (synth && synth.speaking) synth.pause(); }
     else { setPaused(false); if (vo && !vo.ended) vo.play().catch(() => {}); if (synth && synth.paused) synth.resume(); }
   });
@@ -1348,10 +1364,12 @@ tr:last-child td{ border-bottom:0; }
     cap.classList.add('speaking');
     synth.speak(u);
   }
-  voiceChk.addEventListener('change', () => { vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked); if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
+  voiceChk.addEventListener('change', () => { if (voiceChk.checked) unlockAudio(); vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked); if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
 
   // SVG SMIL animations: pause under reduced motion
   if (reduce) document.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });
+
+  document.addEventListener('pointerdown', () => { if (voiceChk.checked) unlockAudio(); }, { capture: true });
 
   // ---- start (deep link #chN or #chN-M) ----
   const m = /^#ch(\d+)(?:-(\d+))?$/.exec(location.hash);
