@@ -121,6 +121,43 @@ def bubble(src, dst, tmp):
     ff('-i', str(tmp / 'ding.wav'), '-i', str(v), '-i', str(tmp / 'send.wav'), '-filter_complex',
        '[0:a][1:a][2:a]concat=n=3:v=0:a=1[o]', '-map', '[o]', '-c:a', 'aac', '-b:a', '96k', str(dst))
 
+# Music bed under the Start and Wrap-up narration (approved 31-Oct-2026).
+# "Acoustic Guitar 1" by Audionautix, CC BY 4.0 -- the credit must stay on the page (Wrap-up + fine print).
+MUSIC = ROOT / 'tools/music/audionautix-acoustic-guitar-1.mp3'
+MUSIC_ON = ('ch0', 'ch7')
+MUSIC_PRE, MUSIC_TAIL = 3.0, 5.0     # music starts 3 s before the first word; runs 5 s past the narration, fading to silence
+MUSIC_OPEN, MUSIC_DUCK = -37.0, -45.0  # LUFS of the music alone: in pauses / under the voice ("low")
+
+def pcm(src, ch):
+    raw = subprocess.run(['ffmpeg', '-nostdin', '-loglevel', 'error', '-i', str(src), '-f', 'f32le', '-ac', str(ch), '-ar', str(SR), '-'], capture_output=True).stdout
+    return np.frombuffer(raw, np.float32).reshape(-1, ch).copy()
+
+def add_music(voice_m4a, tmp):
+    v = pcm(voice_m4a, 1)[:, 0]
+    pre = MUSIC_PRE - PAD                       # the narration file already starts with PAD of quiet
+    i0 = int(SR * pre); n = i0 + len(v) + int(SR * MUSIC_TAIL)
+    m = pcm(MUSIC, 2)[:n]
+    if len(m) < n: m = np.concatenate([m, np.zeros((n - len(m), 2))])
+    vv = np.zeros(n); vv[i0:i0 + len(v)] = v
+    hop = int(SR * 0.02); fr = np.pad(vv, (0, (-n) % hop)).reshape(-1, hop)
+    act = (20 * np.log10(np.sqrt((fr ** 2).mean(1)) + 1e-9) > -45).astype(float)
+    sm = np.zeros_like(act); s = 0.0
+    for k, a in enumerate(act):                 # duck: 80 ms down, 700 ms back up
+        s += (a - s) * min(1, 0.02 / (0.08 if a > s else 0.7)); sm[k] = s
+    env = np.repeat(sm, hop)[:n]
+    ml = lufs(MUSIC)
+    g = 10 ** ((MUSIC_OPEN - ml) / 20) + (10 ** ((MUSIC_DUCK - ml) / 20) - 10 ** ((MUSIC_OPEN - ml) / 20)) * env
+    t = np.arange(n) / SR
+    fin = np.clip(t / 0.8, 0, 1)
+    f0 = (i0 + len(v)) / SR - PAD               # last word
+    fout = np.cos(np.clip((t - f0) / (t[-1] - f0), 0, 1) * np.pi / 2) ** 2
+    out = m * (g * fin * fout)[:, None] + vv[:, None]
+    out *= min(1.0, 0.89 / np.abs(out).max())
+    w = tmp / 'music-mix.wav'
+    with wave.open(str(w), 'wb') as f:
+        f.setnchannels(2); f.setsampwidth(2); f.setframerate(SR); f.writeframes((out * 32767).astype('<i2').tobytes())
+    ff('-i', str(w), '-c:a', 'aac', '-b:a', '160k', str(voice_m4a))
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory() as td:
@@ -134,6 +171,7 @@ def main():
                 bubble(denoise(src, tmp) if name.startswith('wayne-') else src, OUT / (name + '.m4a'), tmp); print('bubble ', name)
             else:
                 narration(denoise(src, tmp), OUT / (name + '.m4a'))
+                if name in MUSIC_ON: add_music(OUT / (name + '.m4a'), tmp)
                 print('narration', name)
     if 'VO_OUT' not in os.environ:
         subprocess.run([sys.executable, str(ROOT / 'tools/update-vo-manifest.py')], check=True)
