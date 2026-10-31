@@ -450,7 +450,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.17</span>
+    <span class="ver mono">v0.18</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1278,7 +1278,7 @@ tr:last-child td{ border-bottom:0; }
     voTok++;
     if (vo) { try { vo.pause(); } catch (e) {} vo = null; }
     player.onended = player.onerror = null;
-    if (synth) synth.cancel();
+    if (synth) { try { synth.pause(); } catch (e) {} synth.cancel(); setTimeout(() => { if (synth.speaking) synth.cancel(); }, 60); }
     document.querySelectorAll('.cap.speaking').forEach(c => c.classList.remove('speaking'));
   }
   // Voice-over: media/vo/<panel>.mp3 (ch0, ch1, ch3-1 … ch5-5, ch7) plays if present; else the browser voice
@@ -1288,12 +1288,24 @@ tr:last-child td{ border-bottom:0; }
   // iOS plays audio only on an element first started from a tap, so one element is reused for every clip.
   const player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', '');
   const SILENCE = 'data:audio/wav;base64,UklGRtQEAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbAEAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
-  let unlocked = false;
+  let audioUnlocked = false, speechUnlocked = false, speechUnlocking = false;
   function unlockAudio() {
-    if (unlocked) return;
-    unlocked = true;
-    try { player.src = SILENCE; const p = player.play(); if (p) p.catch(() => {}); } catch (e) {}
-    try { if (synth) { const u = new SpeechSynthesisUtterance(' '); u.volume = 0; synth.speak(u); } } catch (e) {}
+    if (!audioUnlocked) {
+      audioUnlocked = true;
+      try { if (!vo) { player.src = SILENCE; const p = player.play(); if (p) p.catch(() => {}); } } catch (e) {}
+    }
+    // As in the Clearance Delivery Trainer: a short silent line on each tap until iOS reports one actually started
+    if (synth && !speechUnlocked && !speechUnlocking && !synth.speaking) {
+      try {
+        const u = new SpeechSynthesisUtterance('ok'); u.volume = 0; u.rate = 2;
+        speechUnlocking = true;
+        u.onstart = () => { speechUnlocked = true; };
+        u.onend = u.onerror = () => { speechUnlocking = false; };
+        setTimeout(() => { speechUnlocking = false; }, 1500);
+        try { synth.resume(); } catch (e) {}
+        synth.speak(u);
+      } catch (e) { speechUnlocking = false; }
+    }
   }
   function panelId() {
     const ch = chaps[ci];
@@ -1353,23 +1365,31 @@ tr:last-child td{ border-bottom:0; }
     setPaused(false);
     if (skipFn) { const f = skipFn; skipFn = null; f(); } else step(1);
   });
+  // Browser voice, using the iOS lessons from the Clearance Delivery Trainer (v0.28-v0.30):
+  // resume() before every speak(), and a poll in case iOS never fires 'end'.
   function speakSynth(cap, done) {
-    done = done || (() => {});
-    if (!synth || !cap) { done(); return; }
+    let fired = false;
+    const fin = () => { if (fired) return; fired = true; cap && cap.classList.remove('speaking'); (done || (() => {}))(); };
+    if (!synth || !cap) { fin(); return; }
     synth.cancel();
-    const u = new SpeechSynthesisUtterance(cap.textContent);
-    u.rate = 1.0;
-    u.onend = () => { cap.classList.remove('speaking'); done(); };
-    u.onerror = () => done();
+    const text = cap.textContent, my = voTok;
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.0; u.lang = 'en-US';
+    u.onend = fin; u.onerror = fin;
     cap.classList.add('speaking');
+    try { synth.resume(); } catch (e) {}
     synth.speak(u);
+    const est = 1200 + text.split(/\s+/).length * 450;
+    const poll = () => { if (fired || my !== voTok) return; if (!synth.speaking) fin(); else setTimeout(poll, 500); };
+    setTimeout(poll, est);
   }
   voiceChk.addEventListener('change', () => { if (voiceChk.checked) unlockAudio(); vctl.hidden = !voiceChk.checked; document.body.classList.toggle('reading', voiceChk.checked); if (voiceChk.checked) speakCurrent(); else stopSpeech(); });
 
   // SVG SMIL animations: pause under reduced motion
   if (reduce) document.querySelectorAll('svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });
 
-  document.addEventListener('pointerdown', () => { if (voiceChk.checked) unlockAudio(); }, { capture: true });
+  // iOS counts touchend/click as the tap, not pointerdown
+  ['touchend', 'click', 'keydown'].forEach(t => document.addEventListener(t, () => { if (voiceChk.checked) unlockAudio(); }, { passive: true, capture: true }));
 
   // ---- start (deep link #chN or #chN-M) ----
   const m = /^#ch(\d+)(?:-(\d+))?$/.exec(location.hash);
