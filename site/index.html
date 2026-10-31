@@ -446,7 +446,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.13</span>
+    <span class="ver mono">v0.14</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1270,6 +1270,7 @@ tr:last-child td{ border-bottom:0; }
     return scope.querySelector('.cap');
   }
   function stopSpeech() {
+    voTok++;
     if (vo) { try { vo.pause(); } catch (e) {} vo = null; }
     if (synth) synth.cancel();
     document.querySelectorAll('.cap.speaking').forEach(c => c.classList.remove('speaking'));
@@ -1280,23 +1281,44 @@ tr:last-child td{ border-bottom:0; }
     const ch = chaps[ci];
     return 'ch' + ci + (subState.has(ch) ? '-' + (subState.get(ch) + 1) : '');
   }
-  function speakCurrent() {
+  // Claude's voice (Reed): media/vo/claude-<panel>[a|b].m4a, played after the narration on that panel
+  const CLAUDE_VO = { 'ch3-5':['claude-ch3-5'], 'ch4-1':['claude-ch4-1'], 'ch5-2':['claude-ch5-2'],
+    'ch5-3':['claude-ch5-3a','claude-ch5-3b'], 'ch5-4':['claude-ch5-4'], 'ch5-5':['claude-ch5-5'] };
+  let voTok = 0;
+  function playFile(names, tok) {   // try each candidate URL in turn; resolve true if one played to the end
+    return new Promise(res => {
+      const next = (i) => {
+        if (i >= names.length || tok !== voTok) return res(false);
+        const a = new Audio(names[i]); vo = a;
+        a.onended = () => res(true);
+        a.onerror = () => next(i + 1);
+        a.play().catch(() => next(i + 1));
+      };
+      next(0);
+    });
+  }
+  async function speakCurrent() {
     const cap = currentCap();
     if (!cap) return;
-    const a = new Audio('media/vo/' + panelId() + '.mp3');
-    vo = a;
+    const tok = ++voTok, id = panelId();
     cap.classList.add('speaking');
-    a.onended = () => cap.classList.remove('speaking');
-    a.onerror = () => { if (vo === a) { vo = null; speakSynth(cap); } };
-    a.play().catch(() => { if (vo === a) { vo = null; speakSynth(cap); } });
+    const narr = await playFile(['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'], tok);
+    if (tok !== voTok) return;
+    if (!narr) { await new Promise(r => speakSynth(cap, r)); if (tok !== voTok) return; }
+    cap.classList.remove('speaking');
+    for (const n of (CLAUDE_VO[id] || [])) {
+      if (tok !== voTok) return;
+      await playFile(['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'], tok);
+    }
   }
-  function speakSynth(cap) {
-    if (!synth) { cap.classList.remove('speaking'); return; }
-    if (!cap) return;
+  function speakSynth(cap, done) {
+    done = done || (() => {});
+    if (!synth || !cap) { done(); return; }
     synth.cancel();
     const u = new SpeechSynthesisUtterance(cap.textContent);
     u.rate = 1.0;
-    u.onend = () => cap.classList.remove('speaking');
+    u.onend = () => { cap.classList.remove('speaking'); done(); };
+    u.onerror = () => done();
     cap.classList.add('speaking');
     synth.speak(u);
   }
