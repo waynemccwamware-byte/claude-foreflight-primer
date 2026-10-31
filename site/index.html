@@ -90,7 +90,14 @@ body{
 .rail button.on{ color:var(--amber); }
 .rail button span{ display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .rail button:focus-visible{ outline:2px solid var(--amber); outline-offset:2px; border-radius:3px; }
-@media (max-width:560px){ .rail button span{ display:none; } }
+@media (max-width:560px){
+  /* phone: the chapter rail scrolls sideways so every label stays readable; the current one is kept in view */
+  .rail{ overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; gap:10px; padding-bottom:2px;
+    margin-left:-2px; margin-right:-2px; scroll-padding:0 24px; }
+  .rail::-webkit-scrollbar{ display:none; }
+  .rail button{ flex:0 0 auto; min-width:64px; font-size:12px; }
+  .rail button span{ overflow:visible; }
+}
 
 /* ---------- panel + chapters ---------- */
 .panel{
@@ -450,7 +457,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.20</span>
+    <span class="ver mono">v0.21</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1211,6 +1218,8 @@ tr:last-child td{ border-bottom:0; }
     ci = Math.max(0, Math.min(chaps.length - 1, i));
     chaps.forEach((c, k) => c.classList.toggle('on', k === ci));
     [...rail.children].forEach((b, k) => { b.classList.toggle('on', k === ci); b.classList.toggle('done', k < ci); });
+    const onBtn = rail.children[ci];
+    if (onBtn && rail.scrollWidth > rail.clientWidth) rail.scrollTo({ left: Math.max(0, onBtn.offsetLeft - rail.clientWidth / 2 + onBtn.offsetWidth / 2), behavior: reduce ? 'auto' : 'smooth' });
     const ch = chaps[ci];
     if (subState.has(ch)) showSub(ch, sub != null ? sub : subState.get(ch));
     else { run(ch); updateNav(); }
