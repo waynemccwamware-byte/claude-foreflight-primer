@@ -94,8 +94,12 @@ def trim_filter(src, pad):
             runs.append((k, j)); k = j
         else: k += 1
     long = [(a, z) for a, z in runs if z - a >= 5] or runs or [(0, len(act))]
-    a = long[0][0] * hop / 16000
-    z = long[-1][1] * hop / 16000
+    first, last = runs.index(long[0]) if long[0] in runs else 0, runs.index(long[-1]) if long[-1] in runs else len(runs) - 1
+    loud = lambda run: r[run[0]:run[1]].max() > np.percentile(r, 95) - 20   # a word, not a click or knock
+    while first > 0 and runs[first][0] - runs[first - 1][1] <= 3 and loud(runs[first - 1]): first -= 1   # short words like "Your"
+    while last < len(runs) - 1 and runs[last + 1][0] - runs[last][1] <= 3 and loud(runs[last + 1]): last += 1
+    a = runs[first][0] * hop / 16000 if runs else 0.0
+    z = runs[last][1] * hop / 16000 if runs else dur
     s0, s1 = a, z
     a, z = max(0.0, a - pad), min(dur, z + pad)
     # the pads are true silence: fade in over the last 80 ms before the first word, out over 200 ms after the last
