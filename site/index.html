@@ -466,7 +466,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.26</span>
+    <span class="ver mono">v0.27</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -777,6 +777,7 @@ tr:last-child td{ border-bottom:0; }
               <div class="stat"><div class="v">N211WP</div><div class="l">primary · DA40 XLS · KSBA</div></div>
             </div>
             <div class="flag"><b>Worth knowing:</b> N451RK appears twice in my ForeFlight aircraft list (one is a locked copy shared by another pilot), and the two differ in W&amp;B profile and empty weight. Easy to plan in the wrong one.</div>
+            <div class="clb"><span class="who">Claude</span>…Want to try a real one, such as a currency check or a KSBA METAR/TAF?</div>
           </div>
         </div>
         <p class="cap" data-say>First, a quick check. Claude found my 44 saved aircraft, and flagged an airplane that appears twice. That's a cleanup I'd never have spotted.</p>
@@ -810,6 +811,8 @@ tr:last-child td{ border-bottom:0; }
               </div>
               <p class="small" style="margin:6px 0 0">KONP trend as Claude described the outlook from ForeFlight's 10-day model outlook and the NWS Portland discussion, 13-Oct-2026. A trend, not a TAF; bands are approximate.</p>
             </div>
+            <div class="clb"><span class="who">Claude</span>…Want me to run PlaneWX departure windows for KSBA→KONP on Thursday and Friday, with a Sunday return?</div>
+            <div class="you" style="align-self:flex-end; min-height:0">Sure.</div>
           </div>
         </div>
         <p class="cap" data-say>Claude pulled runway, fuel price and pilot notes for six coast airports, then the forecast trend. Good Thursday and Friday morning, stratus Friday afternoon, and rain by Sunday night.</p>
@@ -1204,7 +1207,7 @@ tr:last-child td{ border-bottom:0; }
     subs.forEach((s, i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.textContent = s.dataset.label; b.setAttribute('role', 'tab');
-      b.addEventListener('click', () => { if (chosen) showSub(ch, i); });
+      b.addEventListener('click', () => { if (chosen) { showSub(ch, i); toRail(); } });
       bar.appendChild(b);
     });
     subState.set(ch, 0);
@@ -1237,7 +1240,7 @@ tr:last-child td{ border-bottom:0; }
     b.type = 'button';
     b.innerHTML = '<span>' + ch.dataset.title + '</span>';
     b.setAttribute('aria-label', 'Chapter ' + i + ': ' + ch.dataset.title);
-    b.addEventListener('click', () => { if (chosen) showChap(i); });
+    b.addEventListener('click', () => { if (chosen) { showChap(i); toRail(); } });
     rail.appendChild(b);
   });
 
@@ -1262,19 +1265,24 @@ tr:last-child td{ border-bottom:0; }
     try { history.replaceState(null, '', '#ch' + ci + (hasSub ? '-' + si : '')); } catch (e) {}
   }
 
+  // After Next/Back (or a chapter, step or card tap), bring the progress bar to the top of the screen
+  function toRail() {
+    const top = rail.getBoundingClientRect().top - 8;
+    if (Math.abs(top) > 4) window.scrollTo({ top: window.scrollY + top, behavior: reduce ? 'auto' : 'smooth' });
+  }
   function step(dir) {
     if (!chosen) return;
     const ch = chaps[ci];
     if (subState.has(ch)) {
       const n = ch.querySelectorAll(':scope > .sub').length, si = subState.get(ch) + dir;
-      if (si >= 0 && si < n) { showSub(ch, si); return; }
+      if (si >= 0 && si < n) { showSub(ch, si); toRail(); return; }
     }
     const ni = ci + dir;
     if (ni < 0 || ni >= chaps.length) return;
     const nch = chaps[ni];
     if (subState.has(nch)) subState.set(nch, dir > 0 ? 0 : nch.querySelectorAll(':scope > .sub').length - 1);
     showChap(ni);
-    document.getElementById('panel').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+    toRail();
   }
   prevBtn.addEventListener('click', () => step(-1));
   nextBtn.addEventListener('click', () => step(1));
@@ -1302,7 +1310,7 @@ tr:last-child td{ border-bottom:0; }
     if (!chosen) return;
     const [c, s] = b.dataset.jump.split(':').map(Number);
     showChap(c, s);
-    panel.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    toRail();
   }));
 
   // ---- narration: captions always on; "Read aloud" is a preview using the browser's own voice ----
@@ -1323,7 +1331,7 @@ tr:last-child td{ border-bottom:0; }
   // Voice-over: media/vo/<panel>.mp3 (ch0, ch1, ch3-1 … ch5-5, ch7) plays if present; else the browser voice
   let vo = null;
   // Voice-over files that exist (kept by tools/update-vo-manifest.py), so the page never probes for missing ones.
-  const VO_FILES = new Set(/*VO-MANIFEST*/["claude-ch3-5.m4a", "claude-ch4-1.m4a", "claude-ch5-2.m4a", "claude-ch5-3a.m4a", "claude-ch5-3b.m4a", "claude-ch5-4.m4a", "claude-ch5-5.m4a"]/*END*/);
+  const VO_FILES = new Set(/*VO-MANIFEST*/["claude-ch5-3a.m4a"]/*END*/);
   // iOS plays audio only on an element first started from a tap, so one element is reused for every clip.
   const player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', '');
   const SILENCE = 'data:audio/wav;base64,UklGRtQEAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbAEAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
@@ -1357,8 +1365,8 @@ tr:last-child td{ border-bottom:0; }
     // Claude's voice speaks only what appears in a Claude chat bubble on screen (Wayne, 31-Oct-2026)
     'ch3-5': ['narr', 'wayne-ch3-5'],   // narration first: it tells you what to ask
     'ch4-1': ['wayne-ch4-1', 'narr'],
-    'ch5-1': ['wayne-ch5-1', 'narr'],
-    'ch5-2': ['wayne-ch5-2', 'narr'],
+    'ch5-1': ['wayne-ch5-1', 'claude-ch5-1', 'narr'],
+    'ch5-2': ['wayne-ch5-2', 'claude-ch5-2', 'wayne-ch5-2b', 'narr'],
     'ch5-3': ['claude-ch5-3a', 'wayne-ch5-3', 'narr'],
     'ch5-4': ['wayne-ch5-4', 'narr'],
     'ch5-5': ['claude-ch5-5', 'narr'],
