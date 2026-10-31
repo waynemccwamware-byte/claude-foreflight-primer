@@ -6,13 +6,13 @@ tools/vo-raw/  raw recordings, not published:
   claude-*.m4a     Claude (Reed) bubble -> ding + bubble voice + send
   wayne-*.m4a|mp3  Wayne's typed prompt -> ding + bubble voice + send
 Bubble voice: 80% of the clean level, 300-3400 Hz band, light compression, faint pink-noise bed (approved 31-Oct-2026).
-Ding: the ATC Chair-Fly Trainer's two notes (880 Hz, then 1318.5 Hz, sine). Send: a short rising swoosh + blip.
+Ding: the ATC Chair-Fly Trainer's two notes (880 Hz, then 1318.5 Hz, sine). Send: a Return-key click (down + up), half volume.
 Writes site/media/vo/<name>.m4a, then refreshes the VO_FILES list in site/index.html.
 """
 import os, subprocess, sys, tempfile, wave, pathlib
 import numpy as np
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-RAW, OUT = ROOT / 'tools/vo-raw', ROOT / 'site/media/vo'
+RAW, OUT = ROOT / 'tools/vo-raw', pathlib.Path(os.environ.get('VO_OUT', ROOT / 'site/media/vo'))   # VO_OUT: preview elsewhere
 SR = 44100
 
 def tone(f0, f1, dur, kind, peak):
@@ -38,11 +38,19 @@ def save(path, x):
 def make_fx(tmp):
     ding = place(place(np.zeros(0), tone(880, 880, 0.12, 'sine', 0.3), 0), tone(1318.5, 1318.5, 0.18, 'sine', 0.3), 0.09)
     save(tmp / 'ding.wav', np.concatenate([ding, np.zeros(int(SR * 0.25))]))
-    n = int(SR * 0.32); t = np.arange(n) / SR
-    noise = np.random.default_rng(7).standard_normal(n)
+    # Send: a Return-key press -- key-down click, softer key-up click 85 ms later (approved 31-Oct-2026, half volume)
+    rng = np.random.default_rng(3)
     lp = lambda x, k: np.convolve(x, np.ones(k) / k, mode='same')
-    sw = (lp(noise, 18) - lp(noise, 60)) * np.sin(np.pi * np.clip(t / 0.32, 0, 1)) ** 2 * 0.28
-    send = place(place(np.zeros(int(SR * 0.15)), sw, 0.15), tone(1100, 1760, 0.12, 'sine', 0.18), 0.30)
+    def click(peak, thump, thump_amp, dur=0.035):
+        n = int(SR * dur); t = np.arange(n) / SR
+        noise = rng.standard_normal(n)
+        bp = lp(noise, int(SR / 6000)) - lp(noise, int(SR / 1500))
+        x = bp * np.exp(-t / 0.006)
+        return x / np.abs(x).max() * peak + np.sin(2 * np.pi * thump * t) * np.exp(-t / 0.012) * thump_amp
+    send = np.zeros(int(SR * 0.3))
+    send = place(send, click(0.5, 180, 0.35), 0.10)
+    send = place(send, click(0.28, 240, 0.15), 0.185)
+    send *= 0.35
     save(tmp / 'send.wav', send)
 
 def ff(*args):
@@ -51,6 +59,23 @@ def ff(*args):
 def codec(src):
     r = subprocess.run(['ffprobe', '-v', 'error', '-select_streams', 'a:0', '-show_entries', 'stream=codec_name', '-of', 'csv=p=0', str(src)], capture_output=True, text=True)
     return r.stdout.strip()
+
+RNN = ROOT / 'tools/models/std.rnnn'   # RNNoise model (github.com/richardpl/arnndn-models); 'sh' ate speech on quiet takes
+
+def gaps_db(src):
+    raw = subprocess.run(['ffmpeg', '-nostdin', '-loglevel', 'error', '-i', str(src), '-f', 'f32le', '-ac', '1', '-ar', '16000', '-'], capture_output=True).stdout
+    x = np.frombuffer(raw, np.float32); n = 800
+    fr = x[:len(x) // n * n].reshape(-1, n)
+    return float(np.percentile(20 * np.log10(np.sqrt((fr ** 2).mean(1)) + 1e-9), 10))
+
+def denoise(src, tmp):
+    """Wayne's takes: RNNoise after raising the take to -20 LUFS (RNNoise misreads quiet input).
+    Skipped when the pauses are already clean (it clipped word ends on short, clean takes)."""
+    g = -20 - lufs(src)
+    if gaps_db(src) + g < -66: return src
+    out = tmp / (src.stem + '-dn.wav')
+    ff('-i', str(src), '-af', f'aresample=48000,volume={g:.2f}dB,highpass=f=70,arnndn=m={RNN}', str(out))
+    return out
 
 NARR_LUFS, PAD = -21.0, 0.4   # narration sits ~2 dB above the bubble clips; keep 0.4 s of quiet at each end
 
@@ -106,11 +131,12 @@ def main():
             if src.suffix.lower() not in ('.m4a', '.mp3', '.wav', '.aiff', '.webm', '.ogg'): continue
             name = src.stem
             if name.startswith(('claude-', 'wayne-')):
-                bubble(src, OUT / (name + '.m4a'), tmp); print('bubble ', name)
+                bubble(denoise(src, tmp) if name.startswith('wayne-') else src, OUT / (name + '.m4a'), tmp); print('bubble ', name)
             else:
-                narration(src, OUT / (name + '.m4a'))
+                narration(denoise(src, tmp), OUT / (name + '.m4a'))
                 print('narration', name)
-    subprocess.run([sys.executable, str(ROOT / 'tools/update-vo-manifest.py')], check=True)
+    if 'VO_OUT' not in os.environ:
+        subprocess.run([sys.executable, str(ROOT / 'tools/update-vo-manifest.py')], check=True)
 
 if __name__ == '__main__':
     main()
