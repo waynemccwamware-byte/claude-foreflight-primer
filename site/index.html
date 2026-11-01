@@ -471,7 +471,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.38</span>
+    <span class="ver mono">v0.39</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1375,6 +1375,9 @@ tr:last-child td{ border-bottom:0; }
   let vo = null;
   // Voice-over files that exist (kept by tools/update-vo-manifest.py), so the page never probes for missing ones.
   const VO_FILES = new Set(/*VO-MANIFEST*/["ch0.m4a", "ch1.m4a", "ch2.m4a", "ch3-1.m4a", "ch3-2.m4a", "ch3-3.m4a", "ch3-4.m4a", "ch3-5.m4a", "ch4-1.m4a", "ch4-2.m4a", "ch5-1.m4a", "ch5-2.m4a", "ch5-3.m4a", "ch5-4.m4a", "ch5-5.m4a", "ch6.m4a", "ch7.m4a", "claude-ch5-1.m4a", "claude-ch5-2.m4a", "claude-ch5-3a.m4a", "claude-ch5-5.m4a", "ding.m4a", "send.m4a", "wayne-ch3-5.m4a", "wayne-ch4-1.m4a", "wayne-ch5-1.m4a", "wayne-ch5-2.m4a", "wayne-ch5-2b.m4a", "wayne-ch5-3.m4a", "wayne-ch5-4.m4a"]/*END*/);
+  // ?tv=1: the same clips, all stereo 48 kHz (media/vo-tv/), for screen mirroring to an Apple TV, which popped when the
+  // clips' formats changed. Opt-in only; the normal link plays media/vo/ as approved (01-Nov-2026).
+  const VO_DIR = /[?&]tv=1\b/.test(location.search) ? 'media/vo-tv/' : 'media/vo/';
   // seconds into each music-bed narration file where the voice ends (written by tools/build_vo.py)
   const VO_VOICE_END = /*VO-VOICE-END*/{"ch0": 23.21, "ch1": 15.06, "ch7": 10.71}/*END*/;
   // iOS plays audio only on an element first started from a tap, so one element is reused for every clip.
@@ -1455,7 +1458,7 @@ tr:last-child td{ border-bottom:0; }
     const tok = ++voTok, id = panelId();
     setPaused(false);
     const steps = (SEQ[id] || ['narr']).map(n => n === 'narr' ? { kind: 'narr' } : n.startsWith('wait:') ? { kind: 'wait', ms: +n.slice(5) }
-      : { kind: 'file', names: ['media/vo/' + n + '.m4a', 'media/vo/' + n + '.mp3'] })
+      : { kind: 'file', names: [VO_DIR + n + '.m4a', VO_DIR + n + '.mp3'] })
       .map(st => st.kind !== 'file' || st.names.some(f => VO_FILES.has(f.split('/').pop())) ? st
         : (WAYNE_TEXT[st.names[0].split('/').pop().replace(/\.m4a$/, '')] ? { kind: 'say', text: WAYNE_TEXT[st.names[0].split('/').pop().replace(/\.m4a$/, '')] } : null))
       .filter(Boolean);
@@ -1467,14 +1470,14 @@ tr:last-child td{ border-bottom:0; }
       if (st.kind === 'wait') { const t = setTimeout(() => go(i + 1), reduce ? 0 : st.ms); skipFn = () => { clearTimeout(t); go(i + 1); }; return; }
       if (st.kind === 'file') { playFile(st.names, tok).then(() => go(i + 1)); return; }
       if (st.kind === 'say') {   // an unrecorded bubble: ding, the line in the browser voice, send
-        playFile(['media/vo/ding.m4a'], tok).then(() => {
+        playFile([VO_DIR + 'ding.m4a'], tok).then(() => {
           if (tok !== voTok) return;
           skipFn = () => { if (synth) synth.cancel(); };
-          speakSynth(null, () => { if (tok === voTok) playFile(['media/vo/send.m4a'], tok).then(() => go(i + 1)); }, st.text);
+          speakSynth(null, () => { if (tok === voTok) playFile([VO_DIR + 'send.m4a'], tok).then(() => go(i + 1)); }, st.text);
         });
         return;
       }
-      const files = ['media/vo/' + id + '.mp3', 'media/vo/' + id + '.m4a'];
+      const files = [VO_DIR + id + '.mp3', VO_DIR + id + '.m4a'];
       if (files.some(f => VO_FILES.has(f.split('/').pop()))) {
         cap.classList.add('speaking');
         // narration with a music tail (Start, Why, Wrap-up): the voice is done at VO_VOICE_END, before the file ends

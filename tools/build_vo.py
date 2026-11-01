@@ -213,6 +213,7 @@ def main():
         html = re.sub(r'/\*VO-VOICE-END\*/.*?/\*END\*/', lambda _: '/*VO-VOICE-END*/' + json.dumps(voice_end) + '/*END*/', html, flags=re.S)
         page.write_text(html)
         subprocess.run([sys.executable, str(ROOT / 'tools/update-vo-manifest.py')], check=True)
+        subprocess.run([sys.executable, str(ROOT / 'tools/make-tv-audio.py')], check=True)   # ?tv=1 copy
 
 if __name__ == '__main__':
     main()
