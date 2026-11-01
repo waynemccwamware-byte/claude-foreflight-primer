@@ -52,6 +52,12 @@ body{
 }
 .mono{ font-family:'IBM Plex Mono', monospace; }
 .rig{ width:100%; max-width:760px; margin:0 auto; }
+/* ?video=1: layout for recording the YouTube video (16:9, no scrolling). The page scales itself down to fit the frame. */
+body.video{ overflow:hidden; }
+body.video .rig{ max-width:900px; transform-origin:top center; transition:transform .6s ease; }
+body.video .purpose-line, body.video .ver, body.video .nav, body.video .start, body.video .cap, body.video .fine,
+body.video .ggp-footer, body.video .replay, body.video .try, body.video .chatlink, body.video .chatlink + .small,
+body.video .wrap-cta, body.video .map-note{ display:none !important; }
 
 .btn{
   font:500 13px 'IBM Plex Sans', sans-serif; padding:10px 16px; border-radius:6px;
@@ -788,7 +794,7 @@ tr:last-child td{ border-bottom:0; }
         <div class="stage" style="padding:0">
           <iframe id="airportsFrame" title="Airports Visited, live map" data-src="https://geezer-geek-pilot-control-panel.netlify.app/airports/?embed=1&amp;tour=KONP,XSQA&amp;cue=1" loading="lazy"></iframe>
         </div>
-        <p class="small" style="margin:6px 2px 0">The live map, running a short tour: West &amp; Baja, then Newport, Oregon (KONP), then San Pedro de la Cueva, Sonora (XSQA). Touch the map to take over. <a href="https://geezer-geek-pilot-control-panel.netlify.app/airports/" target="_blank" rel="noopener">Open the full map</a></p>
+        <p class="small map-note" style="margin:6px 2px 0">The live map, running a short tour: West &amp; Baja, then Newport, Oregon (KONP), then San Pedro de la Cueva, Sonora (XSQA). Touch the map to take over. <a href="https://geezer-geek-pilot-control-panel.netlify.app/airports/" target="_blank" rel="noopener">Open the full map</a></p>
         <p class="cap" data-say>I asked Claude for every airport in my ForeFlight logbook, departures, destinations and tech stops, and Claude built this map. Here it zooms to Newport, Oregon, then to San Pedro de la Cueva in Sonora, Mexico.</p>
       </div>
     </section>
@@ -1208,13 +1214,34 @@ tr:last-child td{ border-bottom:0; }
   // The map's zooms follow the narration (Airports Visited v1.4, &cue=1): fly to Newport as Wayne says "Here it zooms
   // to Newport" and to San Pedro on "then to San Pedro". Seconds into ch4-2.m4a (the TV page file starts the same);
   // re-time these if ch4-2 is re-recorded. With sound the map ends zoomed all the way out; muted, it runs its own loop.
-  const MAP_CUES = [[11.2, 'KONP'], [13.9, 'XSQA'], [18.0, 'ALL']];   // ALL: a couple of seconds on San Pedro, then all the way out
+  const MAP_CUES = [[11.2, 'KONP'], [13.9, 'XSQA'], [18.0, 'ALL']];
+  // ?video=1 (recording the YouTube video): see body.video in the CSS. The page shrinks smoothly, never grows, as a
+  // scene's content grows, so each page fits the 16:9 frame without scrolling.
+  const VIDEO = /[?&]video=1\b/.test(location.search);
+  let videoT0 = 0, videoScale = 1;
+  if (VIDEO) {
+    document.body.classList.add('video');
+    setInterval(() => {
+      const r = document.querySelector('.rig'); if (!r) return;
+      const need = Math.min(1, (window.innerHeight - 20) / (r.scrollHeight + 20));
+      if (need < videoScale - 0.004) videoScale = need;
+      const dy = Math.max(0, (window.innerHeight - r.scrollHeight * videoScale) / 2 - 10);   // short pages sit centered
+      const t = 'translateY(' + dy.toFixed(0) + 'px) scale(' + videoScale.toFixed(3) + ')';
+      if (r.style.transform !== t) r.style.transform = t;
+    }, 120);
+  }   // ALL: a couple of seconds on San Pedro, then all the way out
   let mapReady = false, mapFired = new Set(), mapAutoT = 0;
   const mapSend = (id) => { const f = document.getElementById('airportsFrame'); try { f && f.contentWindow && f.contentWindow.postMessage({ ggpTour: id }, '*'); } catch (e) {} };
   window.addEventListener('message', (e) => {
     const f = document.getElementById('airportsFrame');
     if (!f || e.source !== f.contentWindow || !e.data || !e.data.ggpTourReady) return;
     mapReady = true;
+    if (VIDEO) {   // recording: no audio player, so the cues run from the clock (the page's soundtrack starts with it)
+      mapSend('hold');
+      const el = (performance.now() - videoT0) / 1000;
+      MAP_CUES.forEach(([t, id]) => setTimeout(() => mapSend(id), Math.max(0, (t - el) * 1000)));
+      return;
+    }
     mapSend(voiceChk.checked ? 'hold' : 'auto');   // with sound, the narration cues the map (MAP_CUES)
   });
 
@@ -1277,6 +1304,7 @@ tr:last-child td{ border-bottom:0; }
     const tok = runToken;
     stopSpeech();
     setReady(!voiceChk.checked);   // muted: nothing to wait for
+    if (VIDEO) { videoT0 = performance.now(); videoScale = 1; const r = document.querySelector('.rig'); if (r) r.style.transform = ''; }
     if (el.classList.contains('scene')) playScene(el, tok);
     else if (el.closest('.chap') && el.closest('.chap').dataset.title === 'Logbook') { playLogbook(el, tok); loadMap(el); }
     else if (el === chaps[2]) playTools(tok);
