@@ -120,7 +120,7 @@ let saved = {}; try { saved = JSON.parse(localStorage.getItem(SKEY) || '{}'); } 
 const keep = () => { try { localStorage.setItem(SKEY, JSON.stringify(saved)); } catch (e) {} };
 
 let idx = 0, state = 'idle';           // idle | count | rec | review
-let stream = null, actx = null, analyser = null, rec = null, chunks = [], blob = null, blobUrl = null, peaks = null;
+let stream = null, micSrc = null, revBuf = null, revSrc = null, actx = null, analyser = null, rec = null, chunks = [], blob = null, blobUrl = null, peaks = null;
 let timers = [], raf = 0, t0 = 0;
 const player = new Audio();
 const TYPES = [['audio/mp4;codecs=mp4a.40.2', 'm4a'], ['audio/mp4', 'm4a'], ['audio/webm;codecs=opus', 'webm'], ['audio/webm', 'webm'], ['audio/ogg;codecs=opus', 'ogg']];
@@ -228,10 +228,15 @@ async function ensureMic() {
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 } });
   } catch (e) { msg('Microphone blocked. Allow the mic for this site and try again.', true); return false; }
-  actx = new (window.AudioContext || window.webkitAudioContext)();
-  analyser = actx.createAnalyser(); analyser.fftSize = 2048;
-  actx.createMediaStreamSource(stream).connect(analyser);
+  if (!actx) { actx = new (window.AudioContext || window.webkitAudioContext)(); analyser = actx.createAnalyser(); analyser.fftSize = 2048; }
+  micSrc = actx.createMediaStreamSource(stream); micSrc.connect(analyser);
   return true;
+}
+// iPhone: while a page holds the mic, iOS plays sound through the quiet earpiece. Let go of it after each take.
+function releaseMic() {
+  try { micSrc && micSrc.disconnect(); } catch (e) {}
+  if (stream) stream.getTracks().forEach(t => t.stop());
+  stream = null; micSrc = null;
 }
 function beep(f, dur = 0.12) {
   const o = actx.createOscillator(), v = actx.createGain();
@@ -262,6 +267,7 @@ function startRec() {
 }
 function stopRec() { if (state === 'rec' && rec && rec.state !== 'inactive') { cancelAnimationFrame(raf); rec.stop(); } }
 async function finishRec() {
+  releaseMic();
   blob = new Blob(chunks, { type: rec.mimeType || fmt[0] || 'audio/mp4' });
   blobUrl = URL.createObjectURL(blob);
   player.src = blobUrl;
@@ -271,6 +277,7 @@ async function finishRec() {
   try {
     const ab = await blob.arrayBuffer();
     const buf = await new Promise((res, rej) => actx.decodeAudioData(ab, res, rej));
+    revBuf = buf;
     const d = buf.getChannelData(0), n = 400, size = Math.floor(d.length / n) || 1;
     peaks = new Float32Array(n);
     for (let i = 0; i < n; i++) { let m = 0; for (let j = i * size; j < (i + 1) * size && j < d.length; j++) m = Math.max(m, Math.abs(d[j])); peaks[i] = m; }
@@ -283,6 +290,7 @@ async function finishRec() {
 }
 function play() {
   if (!blobUrl) return;
+  if (revBuf) return playLevelled();
   if (!player.paused) { player.pause(); return; }
   player.currentTime = 0; player.play().catch(() => msg('Playback was blocked. Tap Play again.', true));
   const tick = () => {
@@ -293,13 +301,27 @@ function play() {
   };
   requestAnimationFrame(tick);
 }
-function redo() { player.pause(); startCount(); }
+// Review at the level the take will have in the primer: peaks brought up to about -3 dBFS (at most +24 dB).
+function stopReview() { if (revSrc) { try { revSrc.onended = null; revSrc.stop(); } catch (e) {} revSrc = null; } drawWave(); $('playhead').style.left = '0'; }
+async function playLevelled() {
+  if (revSrc) { stopReview(); return; }
+  if (actx.state === 'suspended') await actx.resume();
+  const top = peaks ? Math.max(...peaks) : 0.5;
+  const gain = actx.createGain(); gain.gain.value = Math.min(16, 0.7 / Math.max(top, 1e-3));
+  revSrc = actx.createBufferSource(); revSrc.buffer = revBuf; revSrc.connect(gain).connect(actx.destination);
+  const t = actx.currentTime, dur = revBuf.duration, me = revSrc;
+  revSrc.onended = () => { if (revSrc === me) { revSrc = null; drawWave(); $('playhead').style.left = '0'; } };
+  revSrc.start();
+  const tick = () => { if (revSrc !== me) return; const q = Math.min(1, (actx.currentTime - t) / dur); drawWave(q); $('playhead').style.left = (q * 100) + '%'; requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+function redo() { player.pause(); stopReview(); startCount(); }
 function cancel() { timers.forEach(clearTimeout); timers = []; setState('idle'); }
-function discard() { player.pause(); timers.forEach(clearTimeout); timers = []; if (blobUrl) URL.revokeObjectURL(blobUrl); blob = blobUrl = peaks = null; }
+function discard() { player.pause(); stopReview(); revBuf = null; timers.forEach(clearTimeout); timers = []; if (blobUrl) URL.revokeObjectURL(blobUrl); blob = blobUrl = peaks = null; }
 
 async function save() {
   if (!blob) return;
-  player.pause();
+  player.pause(); stopReview();
   const name = fileName();
   const file = new File([blob], name, { type: blob.type });
   const touch = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
