@@ -122,6 +122,7 @@ def narration(src, dst):
        f":measured_thresh={j['input_thresh']}:offset={j['target_offset']}:linear=true,aresample=48000",
        '-c:a', 'aac', '-b:a', '128k', str(dst))
 
+BUBBLE_V_LUFS = -23.0     # the processed bubble voice, as Reed's clips came out (approved 31-Oct-2026)
 BUBBLE_IN_LUFS = -21.8   # the Reed recordings' level, which the bubble chain below was tuned on
 
 def lufs(src):
@@ -136,7 +137,10 @@ def bubble(src, dst, tmp):
        f'[0:a]{trim_filter(src, 0.15)},aresample=44100,volume={gain:.2f}dB,highpass=f=300,lowpass=f=3400,'
        'acompressor=threshold=-18dB:ratio=3:attack=5:release=80,volume=5.9dB,volume=0.8[v];'
        '[1:a]highpass=f=200,lowpass=f=5000[n];[v][n]amix=inputs=2:duration=first:normalize=0[o]', '-map', '[o]', str(v))
-    ff('-i', str(tmp / 'ding.wav'), '-i', str(v), '-i', str(tmp / 'send.wav'), '-filter_complex',
+    # then set the processed bubble voice to one level, so every bubble (Wayne's or Reed's, Mac or iPhone) matches
+    v2 = tmp / 'v2.wav'
+    ff('-i', str(v), '-af', f'volume={BUBBLE_V_LUFS - lufs(v):.2f}dB,alimiter=limit=0.89:level=false', str(v2))
+    ff('-i', str(tmp / 'ding.wav'), '-i', str(v2), '-i', str(tmp / 'send.wav'), '-filter_complex',
        '[0:a][1:a][2:a]concat=n=3:v=0:a=1[o]', '-map', '[o]', '-c:a', 'aac', '-b:a', '96k', str(dst))
 
 # Music bed under the Start and Wrap-up narration (approved 31-Oct-2026).
