@@ -17,6 +17,8 @@ BASE = """<!doctype html><meta charset="utf-8"><style>%s
 :root{--bg:#10141a;--panel:#1b222c;--bezel:#2a323f;--amber:#f5a623;--text:#e7e4dc;--muted:#8b93a1;--teal:#3fa7a0}
 *{box-sizing:border-box} html,body{margin:0;width:1280px;height:720px;background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;overflow:hidden}
 body{background:radial-gradient(1200px 600px at 50%% 40%%,#18202a,#10141a)}
+body::after{content:"";position:absolute;inset:0;opacity:.06;pointer-events:none;   /* fine grain: no banding in the glow */
+  background-image:url("data:image/svg+xml,%%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%%3E%%3Cfilter id='n'%%3E%%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%%3E%%3C/filter%%3E%%3Crect width='160' height='160' filter='url(%%23n)'/%%3E%%3C/svg%%3E")}
 .wrap{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;padding:0 110px}
 .k{font:500 15px 'IBM Plex Mono',monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);margin-bottom:18px}
 h1{font-size:64px;font-weight:600;margin:0 0 18px;letter-spacing:.005em}

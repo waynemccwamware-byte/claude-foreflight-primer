@@ -10,8 +10,8 @@ html = PAGE.read_text(); ready = json.loads(re.search(r'/\*VO-TV\*/(.*?)/\*END\*
 HASH = {'ch0': 'ch0', 'ch1': 'ch1', 'ch2': 'ch2', 'ch6': 'ch6', 'ch7': 'ch7'}
 for c, n in ((3, 5), (4, 2), (5, 5)):
     for i in range(n): HASH[f'ch{c}-{i+1}'] = f'ch{c}-{i}'
-FW, FH, MAXS = 1240, 700, 1.45
-WIDTHS = [1240, 1160, 1080, 1000, 940, 880, 820, 760]
+FW, FH, MAXS = 1260, 712, 1.6
+WIDTHS = [1240, 1160, 1080, 1000, 940, 880, 820, 760, 700]
 
 async def measure(ctx, pid):
     pg = await ctx.new_page()
@@ -23,7 +23,7 @@ async def measure(ctx, pid):
     best = None
     for w in WIDTHS:
         h = await pg.evaluate(f"(()=>{{const r=document.querySelector('.rig');r.style.transform='none';r.style.maxWidth='{w}px';return r.scrollHeight}})()")
-        s = min(MAXS, FW / w, (FH - 20) / (h + 20))
+        s = min(MAXS, FW / w, (FH - 8) / (h + 8))
         if best is None or s > best[1] + 0.01: best = (w, round(s, 3), h)
     await pg.close()
     return pid, best
