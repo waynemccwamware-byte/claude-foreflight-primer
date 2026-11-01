@@ -471,7 +471,7 @@ tr:last-child td{ border-bottom:0; }
 <div class="rig">
   <div class="title-row">
     <h1>Claude + ForeFlight Primer</h1>
-    <span class="ver mono">v0.41</span>
+    <span class="ver mono">v0.42</span>
   </div>
   <p class="purpose-line"><span class="purpose-label">Purpose:</span> Why connect Claude to your ForeFlight account, how to make the connection, and what the pairing looks like on a real trip and a real logbook.</p>
 
@@ -1207,15 +1207,15 @@ tr:last-child td{ border-bottom:0; }
   }
   // The map's zooms follow the narration (Airports Visited v1.4, &cue=1): fly to Newport as Wayne says "Here it zooms
   // to Newport" and to San Pedro on "then to San Pedro". Seconds into ch4-2.m4a (the TV page file starts the same);
-  // re-time these if ch4-2 is re-recorded. Muted, or once the narration ends, the map runs its own loop.
-  const MAP_CUES = [[11.2, 'KONP'], [13.9, 'XSQA']];
+  // re-time these if ch4-2 is re-recorded. With sound the map ends zoomed all the way out; muted, it runs its own loop.
+  const MAP_CUES = [[11.2, 'KONP'], [13.9, 'XSQA'], [18.0, 'ALL']];   // ALL: a couple of seconds on San Pedro, then all the way out
   let mapReady = false, mapFired = new Set(), mapAutoT = 0;
   const mapSend = (id) => { const f = document.getElementById('airportsFrame'); try { f && f.contentWindow && f.contentWindow.postMessage({ ggpTour: id }, '*'); } catch (e) {} };
   window.addEventListener('message', (e) => {
     const f = document.getElementById('airportsFrame');
     if (!f || e.source !== f.contentWindow || !e.data || !e.data.ggpTourReady) return;
     mapReady = true;
-    if (!voiceChk.checked) mapSend('auto');
+    mapSend(voiceChk.checked ? 'hold' : 'auto');   // with sound, the narration cues the map (MAP_CUES)
   });
 
   async function playLogbook(sub, tok) {
@@ -1400,15 +1400,15 @@ tr:last-child td{ border-bottom:0; }
   // iOS plays audio only on an element first started from a tap, so one element is reused for every clip.
   const player = new Audio(); player.preload = 'auto'; player.setAttribute('playsinline', '');
   // map cues for Logbook · Map (MAP_CUES, above)
+  player.addEventListener('ended', () => {   // the last cue sits near the end of the file: make sure it's sent
+    if (mapReady && panelId() === 'ch4-2' && /(^|\/)(panel-)?ch4-2\.m4a$/.test(player.src) && !mapFired.has('ALL')) { mapFired.add('ALL'); mapSend('ALL'); }
+  });
   player.addEventListener('timeupdate', () => {
     if (!mapReady || panelId() !== 'ch4-2' || !/(^|\/)(panel-)?ch4-2\.m4a$/.test(player.src)) return;
     const due = MAP_CUES.filter(([t, id]) => player.currentTime >= t && !mapFired.has(id));
     if (!due.length) return;
     due.forEach(([, id]) => mapFired.add(id));
     mapSend(due[due.length - 1][1]);   // a late map goes straight to the latest airport
-  });
-  player.addEventListener('ended', () => {
-    if (panelId() === 'ch4-2' && /(^|\/)(panel-)?ch4-2\.m4a$/.test(player.src)) { clearTimeout(mapAutoT); mapAutoT = setTimeout(() => mapSend('auto'), 3000); }
   });
   const SILENCE = 'data:audio/wav;base64,UklGRtQEAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbAEAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIA=';
   let audioUnlocked = false, speechUnlocked = false, speechUnlocking = false;
