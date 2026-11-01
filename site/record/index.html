@@ -180,7 +180,17 @@ function msg(t, err) { $('msg').textContent = t; $('msg').className = err ? 'err
 // ---------- canvas ----------
 const cv = $('cv'), g = cv.getContext('2d');
 function fit() { const r = cv.getBoundingClientRect(), d = devicePixelRatio || 1; cv.width = r.width * d; cv.height = r.height * d; g.setTransform(d, 0, 0, d, 0, 0); return r; }
-function clearCanvas() { const r = fit(); g.clearRect(0, 0, r.width, r.height); }
+// Meter scale in dB, like a recorder's level meter: -48 dBFS at the center line, 0 dBFS at the top and bottom edges.
+const dbScale = (p) => Math.min(1, Math.max(0, (20 * Math.log10(p + 1e-9) + 48) / 48));
+// Target zone for speech peaks: -24 to -6 dBFS (the green band). Above -1 dBFS turns red.
+function band(r) {
+  const mid = r.height / 2, lo = dbScale(10 ** (-24 / 20)) * mid * 0.95, hi = dbScale(10 ** (-6 / 20)) * mid * 0.95;
+  g.fillStyle = 'rgba(62, 203, 134, 0.10)';
+  g.fillRect(0, mid - hi, r.width, hi - lo); g.fillRect(0, mid + lo, r.width, hi - lo);
+  g.fillStyle = 'rgba(62, 203, 134, 0.55)'; g.font = '11px IBM Plex Mono, monospace'; g.textAlign = 'right';
+  g.fillText('aim here', r.width - 6, mid - hi + 12);
+}
+function clearCanvas() { const r = fit(); g.clearRect(0, 0, r.width, r.height); band(r); }
 function drawLive() {
   const r = fit(), buf = new Float32Array(analyser.fftSize);
   const hist = [];
@@ -188,11 +198,11 @@ function drawLive() {
     analyser.getFloatTimeDomainData(buf);
     let pk = 0; for (const v of buf) pk = Math.max(pk, Math.abs(v));
     hist.push(pk); if (hist.length > r.width / 3) hist.shift();
-    g.clearRect(0, 0, r.width, r.height);
+    g.clearRect(0, 0, r.width, r.height); band(r);
     const mid = r.height / 2;
     hist.forEach((p, i) => {
-      const h = Math.max(1, p * mid * 0.95);
-      g.fillStyle = p > 0.97 ? '#e0705f' : '#f5a623';
+      const h = Math.max(1, dbScale(p) * mid * 0.95);
+      g.fillStyle = p > 0.89 ? '#e0705f' : '#f5a623';
       g.fillRect(r.width - (hist.length - i) * 3, mid - h, 2, h * 2);
     });
     $('clock').textContent = ((performance.now() - t0) / 1000).toFixed(1) + ' s';
@@ -201,11 +211,11 @@ function drawLive() {
   step();
 }
 function drawWave(prog) {
-  const r = fit(); g.clearRect(0, 0, r.width, r.height);
+  const r = fit(); g.clearRect(0, 0, r.width, r.height); band(r);
   if (!peaks) { g.fillStyle = '#8b93a1'; g.font = '14px IBM Plex Sans'; g.textAlign = 'center'; g.fillText('Recorded. Press Play to review.', r.width / 2, r.height / 2); return; }
   const mid = r.height / 2, n = peaks.length, w = r.width / n;
   for (let i = 0; i < n; i++) {
-    const h = Math.max(1, peaks[i] * mid * 0.95);
+    const h = Math.max(1, dbScale(peaks[i]) * mid * 0.95);
     g.fillStyle = (prog != null && i / n <= prog) ? '#f5a623' : '#7a5a1e';
     g.fillRect(i * w, mid - h, Math.max(1, w - 1), h * 2);
   }
@@ -266,7 +276,8 @@ async function finishRec() {
     for (let i = 0; i < n; i++) { let m = 0; for (let j = i * size; j < (i + 1) * size && j < d.length; j++) m = Math.max(m, Math.abs(d[j])); peaks[i] = m; }
     const top = Math.max(...peaks);
     if (top > 0.98) msg('Recorded, but it clipped (too loud). Back off the mic a little and redo.', true);
-    else if (top < 0.08) msg('Recorded, but it’s very quiet. Move closer to the mic and redo.', true);
+    else if (top < 0.063) msg(`Recorded, but quiet (peaks ${(20 * Math.log10(top)).toFixed(0)} dB, below the green band). Move the phone’s bottom edge closer, about 6 inches, and redo.`, true);
+    else msg(`Recorded ${secs} s, peaks ${(20 * Math.log10(top)).toFixed(0)} dB. Level is good; play it back, then save or redo.`);
     drawWave();
   } catch (e) { /* waveform is optional */ }
 }
