@@ -54,7 +54,7 @@ body{
 .rig{ width:100%; max-width:760px; margin:0 auto; }
 /* ?video=1: layout for recording the YouTube video (16:9, no scrolling). The page scales itself down to fit the frame. */
 body.video{ overflow:hidden; }
-body.video .rig{ max-width:900px; transform-origin:top center; transition:transform .6s ease; }
+body.video .rig{ max-width:1240px; transform-origin:top center; transition:transform .6s ease; }
 body.video .purpose-line, body.video .ver, body.video .nav, body.video .start, body.video .cap, body.video .fine,
 body.video .ggp-footer, body.video .replay, body.video .try, body.video .chatlink, body.video .chatlink + .small,
 body.video .wrap-cta, body.video .map-note{ display:none !important; }
@@ -1218,17 +1218,32 @@ tr:last-child td{ border-bottom:0; }
   // ?video=1 (recording the YouTube video): see body.video in the CSS. The page shrinks smoothly, never grows, as a
   // scene's content grows, so each page fits the 16:9 frame without scrolling.
   const VIDEO = /[?&]video=1\b/.test(location.search);
-  let videoT0 = 0, videoScale = 1;
+  let videoT0 = 0, videoScale = 1, videoMax = 1, videoPan = null;
+  // per page: [column width, scale] that fills the 16:9 frame best once the page is fully built (tools/video/fit.py)
+  const VFIT = /*VFIT*/{"ch0": [760, 1.36], "ch1": [820, 1.45], "ch2": [1240, 0.851], "ch3-1": [1000, 1.0, "pan"], "ch3-2": [760, 1.133], "ch3-3": [760, 1.133], "ch3-4": [760, 1.166], "ch3-5": [760, 1.166], "ch4-1": [760, 1.093], "ch4-2": [1240, 0.836], "ch5-1": [1000, 1.201], "ch5-2": [1240, 0.803], "ch5-3": [1000, 1.0, "pan"], "ch5-4": [1160, 1.048], "ch5-5": [940, 1.269], "ch6": [1080, 1.148], "ch7": [1160, 1.049]}/*END*/;
+  function videoFit(id) {
+    const r = document.querySelector('.rig'); if (!r) return;
+    const f = VFIT[id] || [1240, 1];
+    r.style.maxWidth = f[0] + 'px'; videoScale = videoMax = f[1];
+    videoPan = f[2] === 'pan' ? { start: 0.12 * (VO_TV[id] || 15), end: 0.88 * (VO_TV[id] || 15) } : null;
+  }
   if (VIDEO) {
     document.body.classList.add('video');
     setInterval(() => {
       const r = document.querySelector('.rig'); if (!r) return;
-      const need = Math.min(1, (window.innerHeight - 20) / (r.scrollHeight + 20));
+      if (videoPan) {   // a tall page: full size, panning from top to bottom as the narration runs
+        const over = Math.max(0, r.scrollHeight * videoScale - (window.innerHeight - 20));
+        const k = Math.min(1, Math.max(0, ((performance.now() - videoT0) / 1000 - videoPan.start) / (videoPan.end - videoPan.start)));
+        const ease = k * k * (3 - 2 * k);
+        r.style.transform = 'translateY(' + (10 - over * ease).toFixed(1) + 'px) scale(' + videoScale + ')';
+        return;
+      }
+      const need = Math.min(videoMax, (window.innerHeight - 20) / (r.scrollHeight + 20));
       if (need < videoScale - 0.004) videoScale = need;
       const dy = Math.max(0, (window.innerHeight - r.scrollHeight * videoScale) / 2 - 10);   // short pages sit centered
       const t = 'translateY(' + dy.toFixed(0) + 'px) scale(' + videoScale.toFixed(3) + ')';
       if (r.style.transform !== t) r.style.transform = t;
-    }, 120);
+    }, 40);
   }   // ALL: a couple of seconds on San Pedro, then all the way out
   let mapReady = false, mapFired = new Set(), mapAutoT = 0;
   const mapSend = (id) => { const f = document.getElementById('airportsFrame'); try { f && f.contentWindow && f.contentWindow.postMessage({ ggpTour: id }, '*'); } catch (e) {} };
@@ -1304,7 +1319,7 @@ tr:last-child td{ border-bottom:0; }
     const tok = runToken;
     stopSpeech();
     setReady(!voiceChk.checked);   // muted: nothing to wait for
-    if (VIDEO) { videoT0 = performance.now(); videoScale = 1; const r = document.querySelector('.rig'); if (r) r.style.transform = ''; }
+    if (VIDEO) { videoT0 = performance.now(); const r = document.querySelector('.rig'); if (r) r.style.transform = ''; videoFit(panelId()); }
     if (el.classList.contains('scene')) playScene(el, tok);
     else if (el.closest('.chap') && el.closest('.chap').dataset.title === 'Logbook') { playLogbook(el, tok); loadMap(el); }
     else if (el === chaps[2]) playTools(tok);

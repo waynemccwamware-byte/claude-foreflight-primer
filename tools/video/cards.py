@@ -3,8 +3,9 @@
 import asyncio, base64, io, sys, pathlib
 import qrcode
 from playwright.async_api import async_playwright
+SCALE = float(sys.argv[3]) if len(sys.argv) > 3 else 1.5   # 1.5 = 1080p, 3 = 4K
 OUT = pathlib.Path(sys.argv[1]); FONTCSS = pathlib.Path(sys.argv[2]).read_text() if len(sys.argv) > 2 else ''
-URL = 'claude-foreflight-primer.netlify.app'
+URL = 'geezer-geek-pilot-control-panel.netlify.app'   # the Control Panel; the primer is its top card
 
 def qr_svg():
     q = qrcode.QRCode(border=0, box_size=10); q.add_data('https://' + URL + '/'); q.make(fit=True)
@@ -22,7 +23,7 @@ h1{font-size:64px;font-weight:600;margin:0 0 18px;letter-spacing:.005em}
 p{font-size:26px;line-height:1.45;color:var(--muted);margin:0;max-width:900px}
 .by{position:absolute;left:110px;bottom:56px;font:500 16px 'IBM Plex Mono',monospace;color:var(--muted);letter-spacing:.06em}
 .row{display:flex;align-items:center;gap:64px}
-.url{font:600 33px 'IBM Plex Mono',monospace;white-space:nowrap;color:var(--amber);margin:22px 0 22px;letter-spacing:.01em}
+.url{font:600 27px 'IBM Plex Mono',monospace;white-space:nowrap;color:var(--amber);margin:22px 0 22px;letter-spacing:.01em}
 .qr{width:250px;height:250px;flex:0 0 250px;padding:0;border-radius:14px;overflow:hidden;box-shadow:0 0 0 2px var(--bezel)}
 .qr svg{display:block;width:100%%;height:100%%}
 .qrl{font:500 14px 'IBM Plex Mono',monospace;color:var(--muted);text-align:center;margin-top:12px;letter-spacing:.08em}
@@ -35,10 +36,10 @@ CARDS = {
   <p>Why and how to connect Claude to your ForeFlight account, and one real trip planned in a single chat.</p></div>
   <div class="by">Narrated by Wayne McClelland</div>""",
  'link': """<div class="wrap"><div class="row"><div style="flex:1"><div class="k">Try it yourself</div><h1 style="font-size:54px">The interactive primer</h1>
-  <div class="url">%s</div><p>Go at your own pace, replay each chat, and copy the prompts straight into Claude.</p></div>
+  <p style="color:var(--text)">On GeezerGeek Pilot Apps, the first card:</p><div class="url">%s</div><p>Go at your own pace, replay each chat, and copy the prompts straight into Claude.</p></div>
   <div><div class="qr">%s</div><div class="qrl">SCAN TO OPEN</div></div></div></div>""",
  'end': """<div class="wrap"><div class="row"><div style="flex:1"><div class="k">Your turn</div><h1 style="font-size:54px">Open the primer, then connect ForeFlight</h1>
-  <div class="url">%s</div><p>Then ask Claude about your own logbook, or your next trip.</p></div>
+  <p style="color:var(--text)">The primer and more pilot tools, on GeezerGeek Pilot Apps:</p><div class="url">%s</div><p>Then ask Claude about your own logbook, or your next trip.</p></div>
   <div><div class="qr">%s</div><div class="qrl">SCAN TO OPEN</div></div></div></div>
   <div class="small">Music: "Acoustic Guitar 1" by Audionautix, licensed CC BY 4.0. Not affiliated with ForeFlight or Anthropic. Not for flight; verify everything with official sources.</div>""",
 }
@@ -46,7 +47,7 @@ CARDS = {
 async def main():
     q = qr_svg()
     async with async_playwright() as p:
-        b = await p.chromium.launch(); pg = await b.new_page(viewport={'width': 1280, 'height': 720}, device_scale_factor=1.5)
+        b = await p.chromium.launch(); pg = await b.new_page(viewport={'width': 1280, 'height': 720}, device_scale_factor=SCALE)
         for name, body in CARDS.items():
             html = BASE + (body % (URL, q) if '%s' in body else body)
             await pg.set_content(html); await pg.wait_for_timeout(300)
